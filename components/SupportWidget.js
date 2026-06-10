@@ -5,6 +5,7 @@ import { MessageCircle, Send, X } from "lucide-react";
 import { apiUrl } from "../lib/api";
 import { BRAND_NAME, CONTACT_EMAIL } from "../lib/constants";
 import { titleCase } from "../lib/format";
+import { useZadApp } from "./ZadAppProvider";
 
 const brandText = (value = "") =>
 	String(value || "")
@@ -12,6 +13,7 @@ const brandText = (value = "") =>
 		.replace(/support@jannatbooking\.com/gi, CONTACT_EMAIL);
 
 export default function SupportWidget({ hotels = [], website = {} }) {
+	const { t, isArabic } = useZadApp();
 	const [open, setOpen] = useState(false);
 	const [caseId, setCaseId] = useState("");
 	const [messages, setMessages] = useState([]);
@@ -24,6 +26,8 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 	const [reply, setReply] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
+	const languageName = isArabic ? "Arabic" : "English";
+	const languageCode = isArabic ? "ar" : "en";
 	const selectedHotel = useMemo(
 		() => hotels.find((hotel) => hotel._id === form.hotelId),
 		[form.hotelId, hotels]
@@ -57,12 +61,16 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 		event.preventDefault();
 		setError("");
 		if (!form.name.trim() || !form.contact.trim() || !selectedHotel || !form.message.trim()) {
-			setError("Please add your name, contact, hotel, and message.");
+			setError(
+				isArabic
+					? "يرجى إضافة الاسم وبيانات التواصل والفندق والرسالة."
+					: "Please add your name, contact, hotel, and message."
+			);
 			return;
 		}
 		const ownerId = String(selectedHotel?.belongsTo?._id || selectedHotel?.belongsTo || "").trim();
 		if (!ownerId) {
-			setError("Please choose a listed ZAD hotel.");
+			setError(isArabic ? "يرجى اختيار فندق من فنادق زاد." : "Please choose a listed ZAD hotel.");
 			return;
 		}
 		setBusy(true);
@@ -75,12 +83,12 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 				customerEmail: form.contact,
 				hotelId: selectedHotel._id,
 				inquiryAbout: "reserve_room",
-				inquiryDetails: `[Preferred Language: English (en)] ${form.message}`,
+				inquiryDetails: `[Preferred Language: ${languageName} (${languageCode})] ${form.message}`,
 				supportScope: "hotel",
 				supporterId: ownerId,
 				ownerId,
-				preferredLanguage: "English",
-				preferredLanguageCode: "en",
+				preferredLanguage: languageName,
+				preferredLanguageCode: languageCode,
 			};
 			const res = await fetch(apiUrl("/support-cases/new"), {
 				method: "POST",
@@ -111,8 +119,8 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 				message: reply.trim(),
 				inquiryAbout: "support",
 				inquiryDetails: reply.trim(),
-				preferredLanguage: "English",
-				preferredLanguageCode: "en",
+				preferredLanguage: languageName,
+				preferredLanguageCode: languageCode,
 			};
 			const res = await fetch(apiUrl(`/support-cases/client/${caseId}`), {
 				method: "PUT",
@@ -131,17 +139,17 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 	};
 
 	return (
-		<div className="support-root">
+		<div className="support-root" dir={isArabic ? "rtl" : "ltr"}>
 			<button className="support-button" type="button" onClick={() => setOpen(true)} aria-label="Open ZAD Hotels support">
 				<MessageCircle size={21} />
-				<span>Support</span>
+				<span>{t("support")}</span>
 			</button>
 			{open ? (
 				<section className="support-panel" aria-label="ZAD Hotels support">
 					<header>
 						<div>
 							<strong>{BRAND_NAME}</strong>
-							<span>Hotel support</span>
+							<span>{isArabic ? "دعم الفنادق" : "Hotel support"}</span>
 						</div>
 						<button type="button" onClick={() => setOpen(false)} aria-label="Close support">
 							<X size={20} />
@@ -166,7 +174,7 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 								})}
 							</div>
 							<form className="reply-form" onSubmit={sendReply}>
-								<input value={reply} onChange={(event) => setReply(event.target.value)} placeholder="Type your message..." />
+								<input value={reply} onChange={(event) => setReply(event.target.value)} placeholder={t("typeMessage")} />
 								<button type="submit" disabled={busy || !reply.trim()} aria-label="Send message">
 									<Send size={18} />
 								</button>
@@ -175,17 +183,17 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 					) : (
 						<form className="start-form" onSubmit={startChat}>
 							<div className="field">
-								<label>Name</label>
+								<label>{t("name")}</label>
 								<input value={form.name} onChange={(event) => updateForm("name", event.target.value)} />
 							</div>
 							<div className="field">
-								<label>Email or phone</label>
+								<label>{t("contact")}</label>
 								<input value={form.contact} onChange={(event) => updateForm("contact", event.target.value)} />
 							</div>
 							<div className="field">
-								<label>Hotel</label>
+								<label>{t("hotel")}</label>
 								<select value={form.hotelId} onChange={(event) => updateForm("hotelId", event.target.value)}>
-									<option value="">Choose a Zad hotel</option>
+									<option value="">{isArabic ? "اختر فندق زاد" : "Choose a Zad hotel"}</option>
 									{hotels.map((hotel) => (
 										<option key={hotel._id} value={hotel._id}>
 											{titleCase(hotel.hotelName)}
@@ -194,11 +202,11 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 								</select>
 							</div>
 							<div className="field">
-								<label>Message</label>
-								<textarea value={form.message} onChange={(event) => updateForm("message", event.target.value)} placeholder="Tell us the room or dates you are looking for." />
+								<label>{t("message")}</label>
+								<textarea value={form.message} onChange={(event) => updateForm("message", event.target.value)} placeholder={isArabic ? "اكتب الغرفة أو التواريخ التي تبحث عنها." : "Tell us the room or dates you are looking for."} />
 							</div>
 							<button className="btn btn-primary" type="submit" disabled={busy}>
-								Start chat
+								{t("startChat")}
 							</button>
 						</form>
 					)}
@@ -359,8 +367,8 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 				@media (max-width: 640px) {
 					.support-root {
 						right: 12px;
-						top: 78px;
-						bottom: auto;
+						top: auto;
+						bottom: 14px;
 					}
 
 					.support-button {
@@ -377,9 +385,9 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 
 					.support-panel {
 						right: -2px;
-						top: 66px;
-						bottom: auto;
-						max-height: calc(100vh - 156px);
+						top: auto;
+						bottom: 66px;
+						max-height: calc(100vh - 110px);
 					}
 				}
 			`}</style>

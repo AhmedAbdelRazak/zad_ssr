@@ -1,4 +1,5 @@
-import { Mail, MessageCircle, Phone } from "lucide-react";
+import ContactCards from "../../components/ContactCards";
+import PageHero from "../../components/PageHero";
 import { getWebsite } from "../../lib/api";
 import {
 	BRAND_NAME,
@@ -23,32 +24,17 @@ export default async function ContactPage() {
 	const image = firstImage(website?.contactUsBanner, DEFAULT_HERO_IMAGE);
 	return (
 		<>
-			<section className="page-hero image-hero" style={{ backgroundImage: `url(${image})` }}>
-				<div className="page-hero-shade" />
-				<div className="container">
-					<p className="eyebrow">Contact</p>
-					<h1>Talk to Zad support</h1>
-					<p>Ask about availability, room choices, payments, or an existing reservation.</p>
-				</div>
-			</section>
+			<PageHero
+				image={image}
+				eyebrow="Contact"
+				title="Talk to Zad support"
+				copy="Ask about availability, room choices, payments, or an existing reservation."
+				eyebrowAr="اتصل بنا"
+				titleAr="تواصل مع دعم زاد"
+				copyAr="اسأل عن التوفر أو خيارات الغرف أو الدفع أو حجز قائم."
+			/>
 			<section className="section">
-				<div className="container contact-grid">
-					<a href={`mailto:${email}`}>
-						<Mail size={24} />
-						<span>Email</span>
-						<strong>{email}</strong>
-					</a>
-					<a href={`tel:${phone.replace(/[^\d+]/g, "")}`}>
-						<Phone size={24} />
-						<span>Phone</span>
-						<strong>{phone}</strong>
-					</a>
-					<a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer">
-						<MessageCircle size={24} />
-						<span>WhatsApp</span>
-						<strong>{phone}</strong>
-					</a>
-				</div>
+				<ContactCards email={email} phone={phone} whatsapp={whatsapp} />
 			</section>
 		</>
 	);

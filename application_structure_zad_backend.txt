@@ -30,6 +30,7 @@ Main Backend Files
     - aboutUsBanner
     - aboutUsPhoto
     - hotelPageBanner
+    - footerBanner
     - aboutUsEnglish
     - aboutUsArabic
     - terms/privacy fields
@@ -39,11 +40,14 @@ Main Backend Files
     - whatsappNumber
     - brandPalette
   - Default logo:
-    https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=375,fit=crop,q=95/mp8vK46zW5uZ3yrv/explore-the-world-2-mP42DVDyWaCRJJ7b.png
+    https://res.cloudinary.com/infiniteapps/image/upload/v1781132268/zad/defaults/logo.png
   - Default carousel:
-    https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1920,fit=crop/mp8vK46zW5uZ3yrv/5-WzMIMeu4V5oAMwan.jpg
-    https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1920,fit=crop/mp8vK46zW5uZ3yrv/4-Wuc7ZGASK3870AYu.jpg
-    https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1920,fit=crop/mp8vK46zW5uZ3yrv/1-h2dMfVDIl5zXa555.jpg
+    https://res.cloudinary.com/infiniteapps/image/upload/v1781132268/zad/defaults/home-carousel-1.jpg
+    https://res.cloudinary.com/infiniteapps/image/upload/v1781132269/zad/defaults/home-carousel-2.jpg
+    https://res.cloudinary.com/infiniteapps/image/upload/v1781132270/zad/defaults/home-carousel-3.jpg
+  - Default footer background:
+    https://res.cloudinary.com/infiniteapps/image/upload/v1781132271/zad/defaults/footer-pattern.jpg
+  - Default Arabic About content is populated so Arabic visitors do not see a blank About page.
 
 - D:\JannatBooking\hotels_backend\controllers\zadcontroller.js
   - Main Zad public website controller.
@@ -55,6 +59,7 @@ Main Backend Files
     - Public hotel responses strip private agent room override data.
     - Website document updates are allowed only to the Zad website manager email or configured platform super admin.
     - Public list endpoints use short in-memory cache headers and compact response shapes.
+    - Website document responses merge footerBanner and Arabic defaults when missing.
 
 - D:\JannatBooking\hotels_backend\routes\zad.js
   - Express route file.
@@ -194,6 +199,10 @@ Maintenance Notes
 - Do not expose private agentInventory or agentPricingRate data in public Zad responses.
 - Do not loosen the website editor authorization without business approval.
 - If the Zad owner email changes, prefer setting ZAD_OWNER_EMAIL in environment rather than hardcoding a new email.
+- If the default Zad Cloudinary assets change, update both:
+  - D:\JannatBooking\hotels_backend\controllers\zadcontroller.js
+  - D:\JannatBooking\hotels_backend\models\zad_website.js
+- Existing saved Zad website documents may keep old custom image URLs. Replace only old default Zyro URLs in production data, and do not overwrite user-uploaded custom images.
 - After backend changes, run:
   - node --check D:\JannatBooking\hotels_backend\controllers\zadcontroller.js
   - node --check D:\JannatBooking\hotels_backend\routes\zad.js
@@ -206,6 +215,22 @@ Verification Performed
   - D:\JannatBooking\hotels_backend\models\zad_website.js
 - D:\JannatBooking\hotels_frontend npm run build passed after the Zad editor/menu changes.
 - D:\JannatBooking\zad_ssr npm run build passed against the Zad API helper fallback behavior.
+- 2026-06-10 Cloudinary/default asset pass:
+  - node --check passed for:
+    - D:\JannatBooking\hotels_backend\controllers\zadcontroller.js
+    - D:\JannatBooking\hotels_backend\models\zad_website.js
+  - Zad SSR npm run build passed after reading the Cloudinary defaults and footerBanner field.
+
+Zad Cloudinary Defaults And Footer Field - 2026-06-10
+- Uploaded the provided Zad default assets to Cloudinary and made those URLs the application defaults.
+- Added footerBanner to the Zad website document model and controller sanitizer.
+- Added merge fallback for footerBanner so old documents still receive a footer image if they do not have one.
+- Added Arabic About default content.
+- Corrected the third default carousel button route to /rooms.
+- Production data note:
+  - The live Zad website document may already exist in MongoDB with old Zyro default URLs.
+  - During deployment, update only the old default Zyro URLs to the new Cloudinary URLs.
+  - Do not replace any hotel group custom uploads that are not the old default Zyro URLs.
 
 Production Deployment Plan - 2026-06-10
 This section documents the intended backend and production rollout steps before execution.

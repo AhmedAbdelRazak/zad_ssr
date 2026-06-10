@@ -1,8 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Input, Select } from "antd";
+import { Search } from "lucide-react";
 import HotelGrid from "./HotelGrid";
 import { titleCase, walkingDistance } from "../lib/format";
+import { useZadApp } from "./ZadAppProvider";
 
 const parseDistance = (value = "") => {
 	const text = String(value || "").toLowerCase();
@@ -24,14 +27,21 @@ const minPrice = (hotel = {}) => {
 };
 
 export default function HotelExplorer({ hotels = [] }) {
+	const { t, isArabic } = useZadApp();
 	const destinations = useMemo(() => {
-		const values = new Set(["All"]);
+		const rows = [{ label: t("all"), value: "All" }];
+		const seen = new Set(["All"]);
 		hotels.forEach((hotel) => {
-			if (hotel.hotelCity) values.add(titleCase(hotel.hotelCity));
-			if (hotel.hotelState) values.add(titleCase(hotel.hotelState));
+			[hotel.hotelCity, hotel.hotelState].filter(Boolean).forEach((item) => {
+				const label = titleCase(item);
+				if (!seen.has(label)) {
+					seen.add(label);
+					rows.push({ label, value: label });
+				}
+			});
 		});
-		return [...values];
-	}, [hotels]);
+		return rows;
+	}, [hotels, t]);
 	const [query, setQuery] = useState("");
 	const [destination, setDestination] = useState("All");
 	const [sort, setSort] = useState("recommended");
@@ -43,6 +53,7 @@ export default function HotelExplorer({ hotels = [] }) {
 			.filter((hotel) => {
 				const haystack = [
 					hotel.hotelName,
+					hotel.hotelName_OtherLanguage,
 					hotel.hotelCity,
 					hotel.hotelState,
 					hotel.hotelCountry,
@@ -69,60 +80,38 @@ export default function HotelExplorer({ hotels = [] }) {
 	}, [destination, hotels, query, sort]);
 
 	return (
-		<div className="explorer">
-			<div className="toolbar">
-				<div className="field">
-					<label>Search hotels</label>
-					<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Hotel name, city, or area" />
+		<div className="explorer" dir={isArabic ? "rtl" : "ltr"}>
+			<div className="toolbar metallic-panel">
+				<div className="search-field">
+					<label>{t("hotelSearch")}</label>
+					<Input
+						value={query}
+						onChange={(event) => setQuery(event.target.value)}
+						placeholder={t("hotelNamePlaceholder")}
+						prefix={<Search size={16} />}
+					/>
 				</div>
-				<div className="field">
-					<label>Destination</label>
-					<select value={destination} onChange={(event) => setDestination(event.target.value)}>
-						{destinations.map((item) => (
-							<option key={item} value={item}>
-								{item}
-							</option>
-						))}
-					</select>
+				<div className="search-field">
+					<label>{t("destination")}</label>
+					<Select value={destination} options={destinations} onChange={setDestination} />
 				</div>
-				<div className="field">
-					<label>Sort</label>
-					<select value={sort} onChange={(event) => setSort(event.target.value)}>
-						<option value="recommended">Recommended</option>
-						<option value="distance">Closest to Al Haram</option>
-						<option value="price">Lowest price</option>
-					</select>
+				<div className="search-field">
+					<label>{t("sort")}</label>
+					<Select
+						value={sort}
+						onChange={setSort}
+						options={[
+							{ value: "recommended", label: t("recommended") },
+							{ value: "distance", label: t("closest") },
+							{ value: "price", label: t("lowestPrice") },
+						]}
+					/>
 				</div>
 			</div>
-			<div className="result-count">{filtered.length} hotels</div>
+			<div className="result-count">
+				{filtered.length} {isArabic ? "فنادق" : filtered.length === 1 ? "hotel" : "hotels"}
+			</div>
 			<HotelGrid hotels={filtered} emptyText="No Zad hotels match this filter yet." />
-			<style jsx>{`
-				.explorer {
-					display: grid;
-					gap: 18px;
-				}
-
-				.toolbar {
-					display: grid;
-					grid-template-columns: 1.5fr 1fr 1fr;
-					gap: 12px;
-					padding: 14px;
-					background: #fff;
-					border: 1px solid var(--zad-border);
-					border-radius: 8px;
-				}
-
-				.result-count {
-					font-weight: 900;
-					color: var(--zad-grey);
-				}
-
-				@media (max-width: 760px) {
-					.toolbar {
-						grid-template-columns: 1fr;
-					}
-				}
-			`}</style>
 		</div>
 	);
 }

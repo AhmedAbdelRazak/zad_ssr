@@ -12,6 +12,9 @@ hotels_backend Zad API routes and renders public booking/discovery pages.
 Runtime
 - Framework: Next.js 16 app router.
 - React: 19.
+- UI library: Ant Design for form controls, drawers, badges, checkout form, and search inputs.
+- Local cart: browser localStorage key zadHotelsCart.
+- Language preference: browser localStorage key zadHotelsLanguage.
 - Local port: 3105.
 - Default API base: https://xhotelpro.com/api unless NEXT_PUBLIC_API_URL or API_URL is set.
 - Local commands:
@@ -62,7 +65,10 @@ App Router Pages
 
 Shared Styling
 - D:\JannatBooking\zad_ssr\app\globals.css
-  - Global layout, colors, responsive rules, hero/page sections, grids, and form styling.
+  - Global layout, metallic colors, responsive rules, hero/page sections, grids, and form styling.
+  - The site uses a two-level header like the hotel-management top bar pattern:
+    a purple/green service strip and a black main navigation strip.
+  - Card corners stay at 8px or less.
   - Brand palette:
     - black: #08090d
     - metallic blue: #2557c7
@@ -73,15 +79,17 @@ Shared Styling
 
 Components
 - D:\JannatBooking\zad_ssr\components\Header.js
-  - Sticky responsive site header.
+  - Sticky responsive two-level site header.
   - Uses Zad logo from website document or default logo.
+  - Includes language toggle, cart badge, search shortcut, WhatsApp/phone CTA, and mobile drawer.
 - D:\JannatBooking\zad_ssr\components\Footer.js
-  - Footer with logo, hotel links, explore links, and contact details.
+  - Footer with Cloudinary footer background image, centered Zad logo, service contacts, newsletter form, social links, hotel links, and explore links.
 - D:\JannatBooking\zad_ssr\components\HeroCarousel.js
   - Client-side carousel for homepage hero.
   - Uses website homeMainBanners or default Zad images.
+  - In Arabic mode, Arabic fallback hero copy is used unless custom Arabic banner text is saved.
 - D:\JannatBooking\zad_ssr\components\SearchPanel.js
-  - Client-side hotel/date/room search form.
+  - Client-side Ant Design hotel/date/room search form.
 - D:\JannatBooking\zad_ssr\components\HotelCard.js
   - Hotel summary card.
 - D:\JannatBooking\zad_ssr\components\HotelGrid.js
@@ -89,15 +97,35 @@ Components
 - D:\JannatBooking\zad_ssr\components\HotelExplorer.js
   - Client-side hotel filtering/sorting for /our-hotels.
 - D:\JannatBooking\zad_ssr\components\RoomCard.js
-  - Room result card with hotel details and WhatsApp booking CTA.
+  - Room result card with hotel details, add-to-cart button, and WhatsApp booking CTA.
+- D:\JannatBooking\zad_ssr\components\ZadAppProvider.js
+  - Client provider for Ant Design theme, Arabic/English state, RTL direction, cart state, and localStorage persistence.
+- D:\JannatBooking\zad_ssr\components\CartDrawer.js
+  - Ant Design cart drawer shown from the header and room cards.
+- D:\JannatBooking\zad_ssr\components\CheckoutClient.js
+  - Checkout request page.
+  - Guests review cart items, add name/phone/email/notes, and send the booking request to Zad via WhatsApp.
+- D:\JannatBooking\zad_ssr\components\PageHero.js
+  - Shared bilingual page hero.
+- D:\JannatBooking\zad_ssr\components\HomeSections.js
+  - Bilingual home intro and featured hotels.
+- D:\JannatBooking\zad_ssr\components\AboutContent.js
+  - Bilingual About content renderer with Arabic fallback copy.
+- D:\JannatBooking\zad_ssr\components\ContactCards.js
+  - Contact cards for email, phone, and WhatsApp.
+- D:\JannatBooking\zad_ssr\components\RoomsResultsHead.js
+  - Bilingual room search result header.
+- D:\JannatBooking\zad_ssr\components\SingleHotelView.js
+  - Bilingual single-hotel hero and room list.
 - D:\JannatBooking\zad_ssr\components\SupportWidget.js
   - Client-side support widget.
   - Important: it does not open the old Jannat/global support context.
   - It requires the guest to choose an actual Zad hotel returned by the Zad API.
+  - Arabic mode sends Arabic preferredLanguage/preferredLanguageCode values to the support case API.
 
 Library Files
 - D:\JannatBooking\zad_ssr\lib\constants.js
-  - Brand constants, default logo, default hero images, room-type labels.
+  - Brand constants, default Cloudinary logo, default Cloudinary hero images, default Cloudinary footer image, room-type labels.
 - D:\JannatBooking\zad_ssr\lib\api.js
   - Server/client API helpers.
   - Reads:
@@ -109,6 +137,9 @@ Library Files
     - /zad/room-query-list/:query
     - /zad/hotels/active-with-deals
   - Gracefully falls back to default website content if the API is not deployed yet.
+- D:\JannatBooking\zad_ssr\lib\i18n.js
+  - Arabic/English text dictionary and navigation labels.
+  - Arabic switches the document direction to RTL.
 - D:\JannatBooking\zad_ssr\lib\format.js
   - Slugs, title-case, currency formatting, HTML stripping, image fallback helpers.
 
@@ -157,6 +188,46 @@ Verification Performed
   - http://localhost:3105/our-hotels
   - http://localhost:3105/rooms
 - Mobile and desktop screenshots were inspected after layout fixes.
+- 2026-06-10 styling pass verification:
+  - npm run build passed after the Ant Design, cart, checkout, Arabic, and metallic UI changes.
+  - Playwright desktop/mobile checks showed no horizontal overflow:
+    - home desktop: scrollWidth 1440, clientWidth 1440
+    - hotels mobile: scrollWidth 390, clientWidth 390
+    - checkout mobile: scrollWidth 390, clientWidth 390
+    - Arabic home mobile: scrollWidth 390, clientWidth 390
+  - Support widget bottom position checked:
+    - desktop bottom offset 18px
+    - mobile bottom offset 14px
+  - Arabic home mobile rendered RTL with Arabic hero title.
+
+Zad Styling And Booking UX Pass - 2026-06-10
+- Added Ant Design controls and theme tokens.
+- Reworked the public site to feel closer to JannatBooking structure while keeping Zad's own identity.
+- Added metallic purple, metallic blue, metallic green, black, white, cream, and grey styling.
+- Added a two-level responsive navigation:
+  - top service strip
+  - main navigation strip
+  - mobile drawer
+- Added a local booking cart and checkout request flow.
+- Added Arabic/English toggle with RTL support.
+- Added bilingual page heroes, home sections, search labels, checkout labels, support labels, and Arabic fallbacks.
+- Reworked footer to match the provided Zad footer direction:
+  - patterned footer image
+  - central logo
+  - service contacts
+  - newsletter field
+  - social links
+- Default visual assets now use Cloudinary URLs:
+  - Logo:
+    https://res.cloudinary.com/infiniteapps/image/upload/v1781132268/zad/defaults/logo.png
+  - Homepage carousel 1:
+    https://res.cloudinary.com/infiniteapps/image/upload/v1781132268/zad/defaults/home-carousel-1.jpg
+  - Homepage carousel 2:
+    https://res.cloudinary.com/infiniteapps/image/upload/v1781132269/zad/defaults/home-carousel-2.jpg
+  - Homepage carousel 3:
+    https://res.cloudinary.com/infiniteapps/image/upload/v1781132270/zad/defaults/home-carousel-3.jpg
+  - Footer pattern:
+    https://res.cloudinary.com/infiniteapps/image/upload/v1781132271/zad/defaults/footer-pattern.jpg
 
 Production Deployment Plan - 2026-06-10
 This section documents the steps planned before pushing and deploying.

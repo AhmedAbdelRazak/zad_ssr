@@ -1,8 +1,9 @@
+import PageHero from "../../components/PageHero";
 import RoomCard from "../../components/RoomCard";
+import RoomsResultsHead from "../../components/RoomsResultsHead";
 import SearchPanel from "../../components/SearchPanel";
 import { getHotels, getRoomSearchResults, getRoomTypes, getWebsite } from "../../lib/api";
 import { BRAND_NAME, DEFAULT_HERO_IMAGE } from "../../lib/constants";
-import { hotelLocation, titleCase } from "../../lib/format";
 
 export const metadata = {
 	title: "Room Search",
@@ -38,13 +39,14 @@ export default async function RoomsPage({ searchParams }) {
 
 	return (
 		<>
-			<section className="page-hero">
-				<div className="container">
-					<p className="eyebrow">Room search</p>
-					<h1>Find the right room for your dates</h1>
-					<p>Search Zad hotels by destination, dates, room type, and guest count.</p>
-				</div>
-			</section>
+			<PageHero
+				eyebrow="Room search"
+				title="Find the right room for your dates"
+				copy="Search Zad hotels by destination, dates, room type, and guest count."
+				eyebrowAr="بحث الغرف"
+				titleAr="ابحث عن الغرفة المناسبة لتواريخك"
+				copyAr="ابحث في فنادق زاد حسب الوجهة والتواريخ ونوع الغرفة وعدد الضيوف."
+			/>
 			<section className="section">
 				<div className="container page-stack">
 					<SearchPanel
@@ -53,13 +55,12 @@ export default async function RoomsPage({ searchParams }) {
 						compact
 						defaults={{ destination, startDate, endDate, roomType, adults, children }}
 					/>
-					<div className="results-head">
-						<div>
-							<p className="eyebrow">{roomRows.length} room options</p>
-							<h2>{titleCase(destination)} stays</h2>
-						</div>
-						<p>{startDate} to {endDate}</p>
-					</div>
+					<RoomsResultsHead
+						count={roomRows.length}
+						destination={destination}
+						startDate={startDate}
+						endDate={endDate}
+					/>
 					{roomRows.length ? (
 						<div className="room-list">
 							{roomRows.map(({ hotel, room }) => (
@@ -68,6 +69,8 @@ export default async function RoomsPage({ searchParams }) {
 									hotel={hotel}
 									room={room}
 									whatsappNumber={website?.whatsappNumber}
+									checkIn={startDate}
+									checkOut={endDate}
 								/>
 							))}
 						</div>

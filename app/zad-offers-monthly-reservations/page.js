@@ -1,4 +1,5 @@
 import HotelGrid from "../../components/HotelGrid";
+import PageHero from "../../components/PageHero";
 import { getDealHotels } from "../../lib/api";
 import { BRAND_NAME, DEFAULT_HERO_IMAGE } from "../../lib/constants";
 
@@ -12,13 +13,14 @@ export default async function OffersPage() {
 	const hotels = await getDealHotels();
 	return (
 		<>
-			<section className="page-hero">
-				<div className="container">
-					<p className="eyebrow">Offers</p>
-					<h1>Monthly and special stays</h1>
-					<p>Hotels with active monthly pricing or special room offers appear here when available.</p>
-				</div>
-			</section>
+			<PageHero
+				eyebrow="Offers"
+				title="Monthly and special stays"
+				copy="Hotels with active monthly pricing or special room offers appear here when available."
+				eyebrowAr="العروض"
+				titleAr="إقامات شهرية وعروض خاصة"
+				copyAr="تظهر هنا الفنادق التي لديها أسعار شهرية أو عروض غرف نشطة."
+			/>
 			<section className="section">
 				<div className="container">
 					<HotelGrid hotels={hotels} emptyText="There are no active Zad offers yet." />

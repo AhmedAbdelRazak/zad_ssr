@@ -1,9 +1,11 @@
 import "./globals.css";
+import "antd/dist/reset.css";
 import { getHotels, getWebsite } from "../lib/api";
 import { BRAND_NAME, BRAND_URL, DEFAULT_HERO_IMAGE } from "../lib/constants";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import SupportWidget from "../components/SupportWidget";
+import { ZadAppProvider } from "../components/ZadAppProvider";
 
 export const metadata = {
 	metadataBase: new URL(BRAND_URL),
@@ -50,16 +52,18 @@ export default async function RootLayout({ children }) {
 	];
 
 	return (
-		<html lang="en">
+		<html lang="en" suppressHydrationWarning>
 			<body>
 				<script
 					type="application/ld+json"
 					dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
 				/>
-				<Header website={website} />
-				<main>{children}</main>
-				<Footer website={website} hotels={hotels} />
-				<SupportWidget hotels={hotels} website={website} />
+				<ZadAppProvider>
+					<Header website={website} />
+					<main>{children}</main>
+					<Footer website={website} hotels={hotels} />
+					<SupportWidget hotels={hotels} website={website} />
+				</ZadAppProvider>
 			</body>
 		</html>
 	);

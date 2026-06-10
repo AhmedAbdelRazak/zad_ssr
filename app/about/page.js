@@ -1,3 +1,5 @@
+import AboutContent from "../../components/AboutContent";
+import PageHero from "../../components/PageHero";
 import { getWebsite } from "../../lib/api";
 import { BRAND_NAME, DEFAULT_HERO_IMAGE } from "../../lib/constants";
 import { firstImage, stripHtml } from "../../lib/format";
@@ -15,19 +17,22 @@ export async function generateMetadata() {
 export default async function AboutPage() {
 	const website = await getWebsite();
 	const image = firstImage(website?.aboutUsBanner, DEFAULT_HERO_IMAGE);
-	const html = website?.aboutUsEnglish || "<p>ZAD Hotels brings together selected hotel stays and responsive support.</p>";
 	return (
 		<>
-			<section className="page-hero image-hero" style={{ backgroundImage: `url(${image})` }}>
-				<div className="page-hero-shade" />
-				<div className="container">
-					<p className="eyebrow">About us</p>
-					<h1>{BRAND_NAME}</h1>
-					<p>Selected hotel stays, thoughtful support, and clearer booking decisions.</p>
-				</div>
-			</section>
+			<PageHero
+				image={image}
+				eyebrow="About us"
+				title={BRAND_NAME}
+				copy="Selected hotel stays, thoughtful support, and clearer booking decisions."
+				eyebrowAr="من نحن"
+				titleAr="زاد للفنادق"
+				copyAr="إقامات مختارة، دعم مدروس، وقرارات حجز أكثر وضوحاً."
+			/>
 			<section className="section">
-				<div className="container content-prose" dangerouslySetInnerHTML={{ __html: html }} />
+				<AboutContent
+					englishHtml={website?.aboutUsEnglish}
+					arabicHtml={website?.aboutUsArabic}
+				/>
 			</section>
 		</>
 	);
