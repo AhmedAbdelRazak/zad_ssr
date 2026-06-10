@@ -431,3 +431,34 @@ Cloudflare Tunnel Recovery And Final Public Routing - 2026-06-10
 - The correct tunnel validation command is:
   sudo cloudflared --config /etc/cloudflared/config.yml tunnel ingress validate
 - aivideo.jannatbooking.com and agentai.jannatbooking.com are not needed for this setup. If they still appear in Cloudflare DNS, remove those two Tunnel records from the Cloudflare dashboard.
+
+Production Zad Defaults Deployment Result - 2026-06-10
+- GitHub push completed for the backend Zad default asset update:
+  - Repository:
+    https://github.com/AhmedAbdelRazak/hotels_backend.git
+  - Branch:
+    master
+  - Commit:
+    d1880b0 - Update Zad Cloudinary defaults
+- Production server pull completed on ssh jannat:
+  - Path:
+    /home/ahmedadmin/Hotels/hotels_backend
+  - The server fast-forwarded from 99f6c70 to d1880b0.
+- Production syntax checks passed:
+  - node --check controllers/zadcontroller.js
+  - node --check models/zad_website.js
+- PM2 production restart completed:
+  - hotels-backend restarted and is online.
+- Mongo safety update was run for the Zad website document:
+  - Document id:
+    6a29f440bf84f4bb283df3bd
+  - It only targets old default Zyro asset URLs and missing footer/Arabic fields.
+  - Result:
+    no data changes were needed because the document already had the expected Cloudinary/default values.
+- Public API verification:
+  - https://xhotelpro.com/api/zad-website-document returned:
+    - Cloudinary logo URL
+    - Cloudinary first carousel URL
+    - Cloudinary footer URL
+    - aboutUsArabic present
+    - third carousel route set to /rooms

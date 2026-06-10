@@ -414,3 +414,43 @@ Cloudflare Tunnel Recovery And Final Public Routing - 2026-06-10
 - The correct tunnel validation command is:
   sudo cloudflared --config /etc/cloudflared/config.yml tunnel ingress validate
 - aivideo.jannatbooking.com and agentai.jannatbooking.com are no longer needed for this setup. If they still appear in Cloudflare DNS, delete those two Tunnel records from the Cloudflare dashboard.
+
+Production Styling Deployment Result - 2026-06-10
+- GitHub push completed for the Zad SSR styling pass:
+  - Repository:
+    https://github.com/AhmedAbdelRazak/zad_ssr.git
+  - Branch:
+    main
+  - Commit:
+    bd6a9cf - Polish Zad booking website
+- Production server pull completed on ssh jannat:
+  - Path:
+    /home/ahmedadmin/Hotels/zad_ssr
+  - The server fast-forwarded from b1e5b12 to bd6a9cf.
+- Production install/build completed:
+  - npm ci completed with 0 vulnerabilities.
+  - npm run build completed successfully.
+- PM2 production restart completed:
+  - zad-ssr restarted and is online.
+  - hotels-backend was also restarted after the related Zad backend default updates.
+  - pm2 save completed successfully.
+- Public route smoke checks returned HTTP 200:
+  - https://zadhotels.jannatbooking.com/
+  - https://zadhotels.jannatbooking.com/our-hotels
+  - https://zadhotels.jannatbooking.com/checkout
+- Public browser verification with Playwright:
+  - Mobile home after Arabic toggle:
+    - title: زاد للفنادق
+    - document direction: rtl
+    - scrollWidth 390, clientWidth 390
+    - support bottom offset: 14px
+  - Mobile hotels:
+    - scrollWidth 390, clientWidth 390
+    - cart icon present
+    - support bottom offset: 14px
+  - Mobile checkout:
+    - title: Complete your booking request
+    - checkout content present
+    - cart present
+    - scrollWidth 390, clientWidth 390
+    - support bottom offset: 14px
