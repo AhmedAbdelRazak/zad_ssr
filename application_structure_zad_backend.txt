@@ -1,0 +1,253 @@
+ZAD BACKEND APPLICATION STRUCTURE
+Audited: 2026-06-10
+
+Purpose
+This file documents the backend pieces that support the ZAD Hotels SSR website
+and the xhotelpro Zad website editor.
+
+The backend lives in:
+D:\JannatBooking\hotels_backend
+
+The frontend SSR website lives in:
+D:\JannatBooking\zad_ssr
+
+Runtime Mounting Rule
+- D:\JannatBooking\hotels_backend\server.js dynamically loads route files from:
+  D:\JannatBooking\hotels_backend\routes
+- Every route file is mounted under /api.
+- Therefore D:\JannatBooking\hotels_backend\routes\zad.js exposes endpoints under /api.
+
+Main Backend Files
+- D:\JannatBooking\hotels_backend\models\zad_website.js
+  - Mongoose model for the Zad website document.
+  - Uses siteKey="zad".
+  - Stores content fields compatible with the existing Jannat website upload widgets:
+    - janatLogo
+    - homeMainBanners
+    - homeSecondBanner
+    - homeThirdBanner
+    - contactUsBanner
+    - aboutUsBanner
+    - aboutUsPhoto
+    - hotelPageBanner
+    - aboutUsEnglish
+    - aboutUsArabic
+    - terms/privacy fields
+    - contactEmail
+    - officialEmail
+    - phone
+    - whatsappNumber
+    - brandPalette
+  - Default logo:
+    https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=375,fit=crop,q=95/mp8vK46zW5uZ3yrv/explore-the-world-2-mP42DVDyWaCRJJ7b.png
+  - Default carousel:
+    https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1920,fit=crop/mp8vK46zW5uZ3yrv/5-WzMIMeu4V5oAMwan.jpg
+    https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1920,fit=crop/mp8vK46zW5uZ3yrv/4-Wuc7ZGASK3870AYu.jpg
+    https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1920,fit=crop/mp8vK46zW5uZ3yrv/1-h2dMfVDIl5zXa555.jpg
+
+- D:\JannatBooking\hotels_backend\controllers\zadcontroller.js
+  - Main Zad public website controller.
+  - Main manager/editor controller for the Zad website document.
+  - Owner email constant:
+    process.env.ZAD_OWNER_EMAIL || "mrgamal@xhoteltest.com"
+  - Important behavior:
+    - Public hotel endpoints are fenced to hotels connected to the Zad owner email.
+    - Public hotel responses strip private agent room override data.
+    - Website document updates are allowed only to the Zad website manager email or configured platform super admin.
+    - Public list endpoints use short in-memory cache headers and compact response shapes.
+
+- D:\JannatBooking\hotels_backend\routes\zad.js
+  - Express route file.
+  - Loaded automatically by server.js under /api.
+  - Uses requireSignin/isAuth for saving website document.
+  - Uses userById route param for authenticated editor saves.
+
+Public API Endpoints
+All endpoints below are mounted under /api.
+
+- GET /api/zad-website-document
+  - Controller:
+    listZadWebsiteDocuments
+  - Used by:
+    D:\JannatBooking\zad_ssr\lib\api.js
+    D:\JannatBooking\hotels_frontend\src\HotelModule\apiAdmin.js
+  - Returns the saved Zad website document or defaults if none exists.
+
+- GET /api/zad/scope-health
+  - Controller:
+    getZadScopeHealth
+  - Purpose:
+    Quick diagnostic for owner email resolution and hotel scope count.
+
+- GET /api/zad/active-hotels
+  - Controller:
+    listOfAllActiveZadHotels
+  - Used by the home page featured hotels.
+
+- GET /api/zad/active-hotel-list
+  - Controller:
+    getZadListOfHotels
+  - Used by:
+    hotel listing
+    support widget hotel choices
+    search/filter pages
+
+- GET /api/zad/distinct-rooms
+  - Controller:
+    distinctZadRoomTypes
+  - Used by the room search form.
+
+- GET /api/zad/single-hotel/:hotelSlug
+  - Controller:
+    getZadHotelFromSlug
+  - Used by:
+    D:\JannatBooking\zad_ssr\app\single-hotel\[slug]\page.js
+
+- GET /api/zad/room-query-list/:query
+  - Controller:
+    gettingZadRoomListFromQuery
+  - Query format:
+    startDate_endDate_roomType_adults_children_destination
+  - Used by:
+    D:\JannatBooking\zad_ssr\app\rooms\page.js
+
+- GET /api/zad/hotels/active-with-deals
+  - Controller:
+    listOfAllActiveZadHotelsMonthlyAndOffers
+  - Used by:
+    D:\JannatBooking\zad_ssr\app\zad-offers-monthly-reservations\page.js
+
+Authenticated Website Editor Endpoint
+- POST /api/zad-website/:documentId/:userId
+  - Controller:
+    createUpdateZadWebsiteDocument
+  - Guards:
+    requireSignin
+    isAuth
+  - User param:
+    router.param("userId", userById)
+  - Used by:
+    D:\JannatBooking\hotels_frontend\src\HotelModule\apiAdmin.js
+    D:\JannatBooking\hotels_frontend\src\HotelModule\TheOverallStructure\ZadWebsite\ZadWebsiteManager.js
+  - Authorization:
+    Only mrgamal@xhoteltest.com or configured platform super admin can update the Zad website document.
+
+Hotel Scope Logic
+- Zad owner email:
+  mrgamal@xhoteltest.com by default.
+- Controller resolves the User document by email.
+- Controller collects hotel ids from:
+  - hotelIdWork
+  - hotelIdsWork
+  - hotelsToSupport
+  - hotelIdsOwner
+  - HotelDetails documents where belongsTo is the owner id or belongsToId
+- Public hotel filter requires:
+  - _id in resolved Zad hotel ids
+  - activateHotel: true
+  - xHotelProActive not false
+  - hotel photos
+  - valid location coordinates
+  - active public rooms with base price and room photos for most list endpoints
+
+Related Existing Backend Models
+- D:\JannatBooking\hotels_backend\models\user.js
+  - Used to resolve mrgamal@xhoteltest.com and hotel assignments.
+- D:\JannatBooking\hotels_backend\models\hotel_details.js
+  - Used to load public hotel, room, photo, location, distance, offers, and monthly data.
+- D:\JannatBooking\hotels_backend\models\supportcase.js
+  - Used by the existing support-case APIs.
+  - The Zad SSR support widget creates normal hotel-scoped support cases through existing supportcase routes.
+
+Related Existing Backend Support Routes
+- D:\JannatBooking\hotels_backend\routes\supportcase.js
+  - POST /api/support-cases/new
+  - GET /api/support-cases/client/:id
+  - PUT /api/support-cases/client/:id
+- D:\JannatBooking\hotels_backend\controllers\supportcase.js
+  - createNewSupportCase
+  - getPublicClientSupportCaseById
+  - updatePublicClientSupportCase
+
+Important Support Widget Rule
+- The Zad SSR support widget must not use the old Jannat/global support hotel id.
+- It requires a real Zad hotel selection from /api/zad/active-hotel-list.
+- It sends supportScope="hotel".
+- It sends hotelId and ownerId from the selected Zad hotel.
+
+Related XHotelPro Frontend API Files
+- D:\JannatBooking\hotels_frontend\src\HotelModule\apiAdmin.js
+  - getZadWebsiteRecord()
+  - saveZadWebsiteRecord(documentId, userId, payload)
+
+Related XHotelPro Editor/UI Files
+- D:\JannatBooking\hotels_frontend\src\HotelModule\TheOverallStructure\ZadWebsite\ZadWebsiteManager.js
+  - Zad website editor page.
+- D:\JannatBooking\hotels_frontend\src\HotelModule\AdminOverallSideMenu\AdminOverallSideMenu.js
+  - Adds side-menu entry only for mrgamal@xhoteltest.com.
+- D:\JannatBooking\hotels_frontend\src\HotelModule\TheOverallStructure\page.js
+  - Maps overall=zad-website to ZadWebsiteManager.
+
+Maintenance Notes
+- Keep all Zad public hotel reads under routes/zad.js and controllers/zadcontroller.js.
+- Do not reuse public Janat endpoints for zadhotels.com.
+- Do not expose private agentInventory or agentPricingRate data in public Zad responses.
+- Do not loosen the website editor authorization without business approval.
+- If the Zad owner email changes, prefer setting ZAD_OWNER_EMAIL in environment rather than hardcoding a new email.
+- After backend changes, run:
+  - node --check D:\JannatBooking\hotels_backend\controllers\zadcontroller.js
+  - node --check D:\JannatBooking\hotels_backend\routes\zad.js
+  - node --check D:\JannatBooking\hotels_backend\models\zad_website.js
+
+Verification Performed
+- node --check passed for:
+  - D:\JannatBooking\hotels_backend\controllers\zadcontroller.js
+  - D:\JannatBooking\hotels_backend\routes\zad.js
+  - D:\JannatBooking\hotels_backend\models\zad_website.js
+- D:\JannatBooking\hotels_frontend npm run build passed after the Zad editor/menu changes.
+- D:\JannatBooking\zad_ssr npm run build passed against the Zad API helper fallback behavior.
+
+Production Deployment Plan - 2026-06-10
+This section documents the intended backend and production rollout steps before execution.
+
+1. Push backend code
+   - Commit and push:
+     - D:\JannatBooking\hotels_backend\controllers\zadcontroller.js
+     - D:\JannatBooking\hotels_backend\models\zad_website.js
+     - D:\JannatBooking\hotels_backend\routes\zad.js
+   - These files are required before the public Zad SSR website can read real Zad hotel data.
+
+2. Push xhotelpro frontend code
+   - Commit and push the Zad website editor/menu integration in hotels_frontend.
+   - This gives mrgamal@xhoteltest.com access to the new ZAD Website editor link.
+
+3. Push Zad SSR code
+   - Initialize and push D:\JannatBooking\zad_ssr to:
+     https://github.com/AhmedAbdelRazak/zad_ssr.git
+   - This repository contains the public Next.js website.
+
+4. Pull on home server
+   - SSH command:
+     ssh jannat
+   - Server directory:
+     /home/ahmedadmin/Hotels
+   - Pull or clone:
+     - hotels_backend
+     - hotels_frontend
+     - zad_ssr
+
+5. Production backend health
+   - Run node --check for the Zad controller/model/routes on the server.
+   - Restart hotels-backend with PM2.
+   - Confirm PM2 shows hotels-backend online.
+   - Confirm /api/zad/scope-health returns a valid response.
+
+6. Subdomain and proxy
+   - Target hostname:
+     zadhotels.jannatbooking.com
+   - Target local service:
+     zad_ssr Next.js app on port 3105.
+   - If web-server changes require sudo, document the exact command or final config used.
+
+Production Deployment Result - 2026-06-10
+- Pending. This will be updated after GitHub push, server pull, backend restart, Zad SSR start, subdomain setup, and smoke checks are completed.

@@ -1,0 +1,219 @@
+ZAD SSR FRONTEND APPLICATION STRUCTURE
+Audited: 2026-06-10
+
+Purpose
+This file documents the ZAD Hotels public SSR website in:
+D:\JannatBooking\zad_ssr
+
+The app is a Next.js website for zadhotels.com. It is intentionally not a
+Create React App clone. It reads public Zad-scoped hotel data from the
+hotels_backend Zad API routes and renders public booking/discovery pages.
+
+Runtime
+- Framework: Next.js 16 app router.
+- React: 19.
+- Local port: 3105.
+- Default API base: https://xhotelpro.com/api unless NEXT_PUBLIC_API_URL or API_URL is set.
+- Local commands:
+  - npm install
+  - npm run dev
+  - npm run build
+  - npm run start
+
+Important Local Files
+- D:\JannatBooking\zad_ssr\package.json
+  - Next.js scripts and dependencies.
+  - Includes a PostCSS override to use a patched PostCSS version.
+- D:\JannatBooking\zad_ssr\next.config.mjs
+  - Next.js config.
+- D:\JannatBooking\zad_ssr\.env.example
+  - Documents NEXT_PUBLIC_API_URL.
+- D:\JannatBooking\zad_ssr\README.md
+  - Short operational README.
+
+App Router Pages
+- D:\JannatBooking\zad_ssr\app\layout.js
+  - Shared HTML shell.
+  - Loads website document and hotels server-side.
+  - Renders Header, Footer, and SupportWidget.
+  - Emits organization and website JSON-LD.
+- D:\JannatBooking\zad_ssr\app\page.js
+  - Home page.
+  - Server-loads website content, hotels, featured hotels, and room types.
+  - Renders hero carousel, search, intro, and featured hotels.
+- D:\JannatBooking\zad_ssr\app\our-hotels\page.js
+  - Hotel collection page.
+  - Uses Zad-scoped hotels only.
+- D:\JannatBooking\zad_ssr\app\rooms\page.js
+  - Room/date search page.
+  - Builds the Zad room-query endpoint format:
+    startDate_endDate_roomType_adults_children_destination
+- D:\JannatBooking\zad_ssr\app\single-hotel\[slug]\page.js
+  - SSR hotel detail page by slug.
+  - Shows active rooms and WhatsApp booking support links.
+- D:\JannatBooking\zad_ssr\app\about\page.js
+  - About page, using Zad website document content.
+- D:\JannatBooking\zad_ssr\app\contact\page.js
+  - Contact page, using Zad website document contact values.
+- D:\JannatBooking\zad_ssr\app\zad-offers-monthly-reservations\page.js
+  - Public offers/monthly page.
+- D:\JannatBooking\zad_ssr\app\jannat-offers-monthly-reservations\page.js
+  - Legacy redirect to /zad-offers-monthly-reservations.
+
+Shared Styling
+- D:\JannatBooking\zad_ssr\app\globals.css
+  - Global layout, colors, responsive rules, hero/page sections, grids, and form styling.
+  - Brand palette:
+    - black: #08090d
+    - metallic blue: #2557c7
+    - metallic green: #0a8f82
+    - purple: #7b3fb3
+    - cream: #f6f0e6
+    - grey: #667085
+
+Components
+- D:\JannatBooking\zad_ssr\components\Header.js
+  - Sticky responsive site header.
+  - Uses Zad logo from website document or default logo.
+- D:\JannatBooking\zad_ssr\components\Footer.js
+  - Footer with logo, hotel links, explore links, and contact details.
+- D:\JannatBooking\zad_ssr\components\HeroCarousel.js
+  - Client-side carousel for homepage hero.
+  - Uses website homeMainBanners or default Zad images.
+- D:\JannatBooking\zad_ssr\components\SearchPanel.js
+  - Client-side hotel/date/room search form.
+- D:\JannatBooking\zad_ssr\components\HotelCard.js
+  - Hotel summary card.
+- D:\JannatBooking\zad_ssr\components\HotelGrid.js
+  - Responsive hotel card grid.
+- D:\JannatBooking\zad_ssr\components\HotelExplorer.js
+  - Client-side hotel filtering/sorting for /our-hotels.
+- D:\JannatBooking\zad_ssr\components\RoomCard.js
+  - Room result card with hotel details and WhatsApp booking CTA.
+- D:\JannatBooking\zad_ssr\components\SupportWidget.js
+  - Client-side support widget.
+  - Important: it does not open the old Jannat/global support context.
+  - It requires the guest to choose an actual Zad hotel returned by the Zad API.
+
+Library Files
+- D:\JannatBooking\zad_ssr\lib\constants.js
+  - Brand constants, default logo, default hero images, room-type labels.
+- D:\JannatBooking\zad_ssr\lib\api.js
+  - Server/client API helpers.
+  - Reads:
+    - /zad-website-document
+    - /zad/active-hotels
+    - /zad/active-hotel-list
+    - /zad/distinct-rooms
+    - /zad/single-hotel/:slug
+    - /zad/room-query-list/:query
+    - /zad/hotels/active-with-deals
+  - Gracefully falls back to default website content if the API is not deployed yet.
+- D:\JannatBooking\zad_ssr\lib\format.js
+  - Slugs, title-case, currency formatting, HTML stripping, image fallback helpers.
+
+Public Files
+- D:\JannatBooking\zad_ssr\public\robots.txt
+- D:\JannatBooking\zad_ssr\public\sitemap.xml
+- D:\JannatBooking\zad_ssr\public\llms.txt
+
+Related XHotelPro Frontend Editor Files
+These are not inside zad_ssr, but they control the Zad website document from xhotelpro.
+
+- D:\JannatBooking\hotels_frontend\src\HotelModule\TheOverallStructure\ZadWebsite\ZadWebsiteManager.js
+  - Overall-dashboard Zad website editor.
+  - Visible only to mrgamal@xhoteltest.com.
+- D:\JannatBooking\hotels_frontend\src\HotelModule\AdminOverallSideMenu\AdminOverallSideMenu.js
+  - Adds the ZAD Website side-menu item for mrgamal@xhoteltest.com only.
+- D:\JannatBooking\hotels_frontend\src\HotelModule\TheOverallStructure\page.js
+  - Maps overall=zad-website to ZadWebsiteManager.
+- D:\JannatBooking\hotels_frontend\src\HotelModule\apiAdmin.js
+  - Adds getZadWebsiteRecord and saveZadWebsiteRecord.
+- D:\JannatBooking\hotels_frontend\src\AdminModule\JanatWebsite\ZLogoAdd.js
+- D:\JannatBooking\hotels_frontend\src\AdminModule\JanatWebsite\ZHomePageBanners.js
+- D:\JannatBooking\hotels_frontend\src\AdminModule\JanatWebsite\ZHomePageBanner2.js
+- D:\JannatBooking\hotels_frontend\src\AdminModule\JanatWebsite\ZHomePageBanner3.js
+- D:\JannatBooking\hotels_frontend\src\AdminModule\JanatWebsite\ZAboutUsAdd.js
+- D:\JannatBooking\hotels_frontend\src\AdminModule\JanatWebsite\ZContactusBannerAdd.js
+  - Existing Jannat upload/content widgets reused with optional title props.
+  - Existing Janat behavior remains unchanged because defaults were preserved.
+
+Maintenance Notes
+- Do not convert this app back to Create React App.
+- Keep Zad public hotel data behind /api/zad/* backend routes.
+- Keep the support widget hotel-scoped.
+- If a new public page needs hotel data, use lib/api.js instead of calling shared Janat endpoints.
+- If the xhotelpro editor adds new website fields, update:
+  - D:\JannatBooking\hotels_backend\models\zad_website.js
+  - D:\JannatBooking\hotels_backend\controllers\zadcontroller.js
+  - D:\JannatBooking\hotels_frontend\src\HotelModule\TheOverallStructure\ZadWebsite\ZadWebsiteManager.js
+  - D:\JannatBooking\zad_ssr\lib\api.js
+
+Verification Performed
+- npm run build passed in D:\JannatBooking\zad_ssr.
+- npm audit --omit=dev found 0 vulnerabilities.
+- Local HTTP smoke checks returned 200:
+  - http://localhost:3105
+  - http://localhost:3105/our-hotels
+  - http://localhost:3105/rooms
+- Mobile and desktop screenshots were inspected after layout fixes.
+
+Production Deployment Plan - 2026-06-10
+This section documents the steps planned before pushing and deploying.
+
+1. Local safety checks
+   - Confirm the working tree changes in:
+     - D:\JannatBooking\hotels_backend
+     - D:\JannatBooking\hotels_frontend
+     - D:\JannatBooking\zad_ssr
+   - Confirm zad_ssr is a Next.js app and not a Create React App.
+   - Re-run builds/checks if needed before pushing.
+
+2. GitHub push plan
+   - Push hotels_backend changes to its existing GitHub repository.
+   - Push hotels_frontend changes to its existing GitHub repository.
+   - Initialize D:\JannatBooking\zad_ssr as its own Git repository.
+   - Add GitHub remote from the setup screenshot:
+     https://github.com/AhmedAbdelRazak/zad_ssr.git
+   - Commit the Next.js Zad website and push branch main.
+
+3. Home server pull plan
+   - SSH to the home server using:
+     ssh jannat
+   - Work inside:
+     /home/ahmedadmin/Hotels
+   - Pull hotels_backend and hotels_frontend from GitHub.
+   - Clone or pull zad_ssr into:
+     /home/ahmedadmin/Hotels/zad_ssr
+
+4. Production build/restart plan
+   - Backend:
+     - Run syntax checks for Zad backend files.
+     - Restart PM2 service hotels-backend.
+   - XHotelPro frontend:
+     - Install if needed.
+     - Build production bundle.
+     - Restart PM2 service hotels-frontend.
+   - Zad SSR:
+     - Install dependencies with npm install or npm ci.
+     - Build with npm run build.
+     - Start/restart with PM2 on port 3105.
+
+5. Subdomain plan
+   - Preferred test subdomain:
+     zadhotels.jannatbooking.com
+   - Point that hostname to the Next.js SSR app on port 3105 through the existing web server/reverse proxy.
+   - If DNS is not already pointed to this home server, document the needed DNS record instead of guessing.
+
+6. Smoke test plan
+   - Test local process health through PM2.
+   - Test the subdomain URL.
+   - Test key routes:
+     - /
+     - /our-hotels
+     - /rooms
+     - /about
+     - /contact
+
+Production Deployment Result - 2026-06-10
+- Pending. This will be updated after GitHub push, server pull, build, subdomain setup, and smoke checks are completed.

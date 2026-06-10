@@ -1,0 +1,14 @@
+# ZAD Hotels
+
+ZAD Hotels is a public hotel booking website for selected Makkah and Madinah stays. The site serves only hotels scoped by the Zad backend API owner configuration.
+
+## Public URLs
+- Home: https://zadhotels.com/
+- Hotels: https://zadhotels.com/our-hotels
+- Room search: https://zadhotels.com/rooms
+- Offers: https://zadhotels.com/zad-offers-monthly-reservations
+- About: https://zadhotels.com/about
+- Contact: https://zadhotels.com/contact
+
+## Support
+Use the on-page support widget, contact@zadhotels.com, or WhatsApp for booking and availability questions.

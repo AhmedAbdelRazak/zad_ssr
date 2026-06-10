@@ -1,0 +1,66 @@
+import "./globals.css";
+import { getHotels, getWebsite } from "../lib/api";
+import { BRAND_NAME, BRAND_URL, DEFAULT_HERO_IMAGE } from "../lib/constants";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
+import SupportWidget from "../components/SupportWidget";
+
+export const metadata = {
+	metadataBase: new URL(BRAND_URL),
+	title: {
+		default: `${BRAND_NAME} | Makkah and Madinah Hotel Booking`,
+		template: `%s | ${BRAND_NAME}`,
+	},
+	description:
+		"Browse selected Makkah and Madinah hotels for Haj and Umrah. Compare rooms, dates, distance, and pricing through ZAD Hotels.",
+	openGraph: {
+		type: "website",
+		siteName: BRAND_NAME,
+		images: [DEFAULT_HERO_IMAGE],
+	},
+	twitter: {
+		card: "summary_large_image",
+		images: [DEFAULT_HERO_IMAGE],
+	},
+};
+
+export default async function RootLayout({ children }) {
+	const [website, hotels] = await Promise.all([getWebsite(), getHotels()]);
+
+	const jsonLd = [
+		{
+			"@context": "https://schema.org",
+			"@type": "Organization",
+			name: BRAND_NAME,
+			url: BRAND_URL,
+			logo: website?.janatLogo?.url,
+			areaServed: ["Makkah", "Madinah", "Saudi Arabia"],
+		},
+		{
+			"@context": "https://schema.org",
+			"@type": "WebSite",
+			name: BRAND_NAME,
+			url: BRAND_URL,
+			potentialAction: {
+				"@type": "SearchAction",
+				target: `${BRAND_URL}/rooms?destination={search_term_string}`,
+				"query-input": "required name=search_term_string",
+			},
+		},
+	];
+
+	return (
+		<html lang="en">
+			<body>
+				<script
+					type="application/ld+json"
+					dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+				/>
+				<Header website={website} />
+				<main>{children}</main>
+				<Footer website={website} hotels={hotels} />
+				<SupportWidget hotels={hotels} website={website} />
+			</body>
+		</html>
+	);
+}
