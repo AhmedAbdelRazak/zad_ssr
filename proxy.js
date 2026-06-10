@@ -4,18 +4,23 @@ const PUBLIC_HOST = "zadhotels.jannatbooking.com";
 const HSTS_VALUE = "max-age=31536000";
 
 const readScheme = (request) => {
+	const cfVisitor = request.headers.get("cf-visitor");
+	if (cfVisitor) {
+		try {
+			const parsed = JSON.parse(cfVisitor);
+			const scheme = String(parsed?.scheme || "").toLowerCase();
+			if (scheme) return scheme;
+		} catch (_error) {
+			if (cfVisitor.includes('"scheme":"http"') || cfVisitor.includes('"scheme": "http"')) {
+				return "http";
+			}
+		}
+	}
+
 	const forwarded = request.headers.get("x-forwarded-proto");
 	if (forwarded) return forwarded.split(",")[0].trim().toLowerCase();
 
-	const cfVisitor = request.headers.get("cf-visitor");
-	if (!cfVisitor) return "";
-
-	try {
-		const parsed = JSON.parse(cfVisitor);
-		return String(parsed?.scheme || "").toLowerCase();
-	} catch (_error) {
-		return cfVisitor.includes("http") ? "http" : "";
-	}
+	return "";
 };
 
 export function proxy(request) {
