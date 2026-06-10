@@ -470,3 +470,14 @@ Production HTTPS Enforcement - 2026-06-10
 - Expected result:
   - http://zadhotels.jannatbooking.com -> 308 redirect to https://zadhotels.jannatbooking.com
   - https://zadhotels.jannatbooking.com -> 200 secure page
+- Final production result:
+  - Added the app-side proxy.js redirect/HSTS logic and deployed it to ssh jannat.
+  - Updated the Nginx zadhotels site on ssh jannat so it no longer hardcodes X-Forwarded-Proto as https.
+  - Nginx now redirects when Cloudflare indicates the guest arrived through HTTP.
+  - Nginx syntax check passed with sudo nginx -t.
+  - Nginx was reloaded with sudo systemctl reload nginx.
+  - Public verification returned:
+    - http://zadhotels.jannatbooking.com -> HTTP/1.1 308 Permanent Redirect
+    - Location: https://zadhotels.jannatbooking.com/
+    - https://zadhotels.jannatbooking.com -> HTTP/2 200
+    - strict-transport-security: max-age=31536000
