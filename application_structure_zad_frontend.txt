@@ -287,3 +287,29 @@ Production Deployment Result - 2026-06-10
           proxy_cache_bypass $http_upgrade;
       }
   }
+
+- Suggested sudo commands after DNS resolves to 107.213.56.128.
+  sudo tee /etc/nginx/sites-available/zadhotels > /dev/null <<'EOF'
+  server {
+      listen 80;
+      server_name zadhotels.jannatbooking.com;
+
+      client_max_body_size 100M;
+
+      location / {
+          proxy_pass http://127.0.0.1:3105;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto https;
+          proxy_cache_bypass $http_upgrade;
+      }
+  }
+  EOF
+  sudo ln -sfn /etc/nginx/sites-available/zadhotels /etc/nginx/sites-enabled/zadhotels
+  sudo nginx -t
+  sudo systemctl reload nginx
+  sudo certbot --nginx -d zadhotels.jannatbooking.com
