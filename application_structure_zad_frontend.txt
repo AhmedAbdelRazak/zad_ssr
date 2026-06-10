@@ -216,4 +216,74 @@ This section documents the steps planned before pushing and deploying.
      - /contact
 
 Production Deployment Result - 2026-06-10
-- Pending. This will be updated after GitHub push, server pull, build, subdomain setup, and smoke checks are completed.
+- GitHub push completed.
+  - hotels_backend pushed to GitHub on branch master:
+    commit 99f6c70 - Add Zad public website API
+  - hotels_frontend pushed to GitHub on branch master:
+    commit 2693f87 - Add Zad website editor
+  - zad_ssr initialized as a new Git repository and pushed to:
+    https://github.com/AhmedAbdelRazak/zad_ssr.git
+    branch main, commit 7002403 - Initial Zad SSR website
+
+- Production server pull and build completed on ssh jannat.
+  - Main server directory:
+    /home/ahmedadmin/Hotels
+  - Backend pulled into:
+    /home/ahmedadmin/Hotels/hotels_backend
+  - XHotelPro frontend pulled into:
+    /home/ahmedadmin/Hotels/hotels_frontend
+  - Zad SSR cloned into:
+    /home/ahmedadmin/Hotels/zad_ssr
+
+- Production services after deployment.
+  - hotels-backend restarted with PM2 and is online.
+  - hotels-frontend rebuilt with npm run build, restarted with PM2, and is online.
+  - zad-ssr installed with npm ci, built with npm run build, started with PM2, and is online.
+  - zad-ssr runs the Next.js app on local port 3105.
+  - PM2 process list was saved with pm2 save.
+
+- Production smoke checks completed.
+  - http://127.0.0.1:3105/ returned HTTP 200.
+  - http://127.0.0.1:3105/our-hotels returned HTTP 200.
+  - http://127.0.0.1:3105/rooms returned HTTP 200.
+  - https://xhotelpro.com/api/zad/scope-health returned HTTP 200.
+  - The Zad API health response confirmed ownerEmail mrgamal@xhoteltest.com, ownerFound true, and hotelCount 7.
+
+- Subdomain status.
+  - Requested hostname:
+    zadhotels.jannatbooking.com
+  - DNS check result:
+    The hostname does not exist yet.
+  - Home server public IP found during deployment:
+    107.213.56.128
+  - Server Nginx requires sudo access for new site files. The deployment user could not write Nginx config without the sudo password.
+
+- To finish the public subdomain.
+  1. Add this DNS record where jannatbooking.com DNS is managed:
+     Type: A
+     Name: zadhotels
+     Value: 107.213.56.128
+  2. After DNS starts resolving, add an Nginx site on the home server that proxies:
+     zadhotels.jannatbooking.com -> http://127.0.0.1:3105
+  3. Reload Nginx and issue SSL with certbot for:
+     zadhotels.jannatbooking.com
+
+- Recommended Nginx site content for the final sudo step.
+  server {
+      listen 80;
+      server_name zadhotels.jannatbooking.com;
+
+      client_max_body_size 100M;
+
+      location / {
+          proxy_pass http://127.0.0.1:3105;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto https;
+          proxy_cache_bypass $http_upgrade;
+      }
+  }
