@@ -313,3 +313,33 @@ Production Deployment Result - 2026-06-10
   sudo nginx -t
   sudo systemctl reload nginx
   sudo certbot --nginx -d zadhotels.jannatbooking.com
+
+Cloudflare Tunnel Recovery And Final Public Routing - 2026-06-10
+- The live public routing uses Cloudflare Tunnel, not a direct A record to the home server.
+- Tunnel name:
+  jannat-home-tunnel
+- Tunnel ID:
+  c5ffbb23-3451-4d5e-9721-d1f5e9975285
+- Home server service:
+  cloudflared.service
+- Tunnel origin target for the public hostnames:
+  http://127.0.0.1:80
+- Nginx then routes by Host header:
+  - jannatbooking.com -> existing Jannat frontend
+  - www.jannatbooking.com -> existing Jannat frontend
+  - zadhotels.jannatbooking.com -> Zad SSR on http://127.0.0.1:3105
+- Cloudflare DNS/public hostnames restored:
+  - jannatbooking.com
+  - www.jannatbooking.com
+  - zadhotels.jannatbooking.com
+- Verification from ssh jannat returned HTTP/2 200 for:
+  - https://jannatbooking.com
+  - https://www.jannatbooking.com
+  - https://zadhotels.jannatbooking.com
+- Important:
+  - Do not run certbot for these Cloudflare Tunnel hostnames.
+  - Cloudflare handles public HTTPS.
+  - The old direct A-record instructions above are only a fallback if the Cloudflare Tunnel is intentionally removed in the future.
+- The correct tunnel validation command is:
+  sudo cloudflared --config /etc/cloudflared/config.yml tunnel ingress validate
+- aivideo.jannatbooking.com and agentai.jannatbooking.com are no longer needed for this setup. If they still appear in Cloudflare DNS, delete those two Tunnel records from the Cloudflare dashboard.
