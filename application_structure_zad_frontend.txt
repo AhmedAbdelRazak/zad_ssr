@@ -29,6 +29,10 @@ Important Local Files
   - Includes a PostCSS override to use a patched PostCSS version.
 - D:\JannatBooking\zad_ssr\next.config.mjs
   - Next.js config.
+- D:\JannatBooking\zad_ssr\proxy.js
+  - Forces http://zadhotels.jannatbooking.com requests to https://zadhotels.jannatbooking.com.
+  - Adds Strict-Transport-Security on public HTTPS responses.
+  - Scoped only to the production Zad hostname, so localhost and other hostnames are not affected.
 - D:\JannatBooking\zad_ssr\.env.example
   - Documents NEXT_PUBLIC_API_URL.
 - D:\JannatBooking\zad_ssr\README.md
@@ -454,3 +458,15 @@ Production Styling Deployment Result - 2026-06-10
     - cart present
     - scrollWidth 390, clientWidth 390
     - support bottom offset: 14px
+
+Production HTTPS Enforcement - 2026-06-10
+- Issue:
+  - Visiting http://zadhotels.jannatbooking.com returned HTTP 200, so Chrome could show "Not secure" if the guest arrived on the HTTP URL.
+  - Visiting https://zadhotels.jannatbooking.com was already working securely.
+- Fix:
+  - Added D:\JannatBooking\zad_ssr\proxy.js.
+  - It reads Cloudflare/origin scheme headers and redirects only the Zad public hostname from HTTP to HTTPS with status 308.
+  - It also adds Strict-Transport-Security on HTTPS responses.
+- Expected result:
+  - http://zadhotels.jannatbooking.com -> 308 redirect to https://zadhotels.jannatbooking.com
+  - https://zadhotels.jannatbooking.com -> 200 secure page
