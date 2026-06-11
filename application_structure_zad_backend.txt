@@ -564,3 +564,26 @@ Zad Client Auth Backend Notes - 2026-06-10
   - node --check passed for:
     - hotels_backend/controllers/zadcontroller.js
     - hotels_backend/routes/zad.js
+
+Zad Support Chat Backend Integration Notes - 2026-06-10
+- Purpose:
+  - Keep Zad support cases on the same shared SupportCase and Socket.IO backend as Jannat Booking while making the Zad frontend experience complete.
+  - Preserve the source flag that identifies Zad-origin chats.
+- Zad SSR frontend integration:
+  - D:\JannatBooking\zad_ssr\components\SupportWidget.js
+    - Continues creating support cases through:
+      POST /api/support-cases/new
+    - Continues sending guest messages through:
+      PUT /api/support-cases/client/:caseId
+    - Continues polling:
+      GET /api/support-cases/client/:caseId
+    - Continues joining the same Socket.IO support-case room.
+    - Sends sourceWebsite="zad_ssr", sourcePage="zadhotels_support_widget", and sourceUrl for Zad-origin support cases.
+    - Sends inquiryAbout from the new Zad support-topic dropdown.
+    - Renders shared backend conversation.quickReplies and sends their value back as the guest reply.
+- Backend relationship:
+  - No new Zad-only support-case route was needed.
+  - The shared hotels_backend SupportCase schema already stores quickReplies on conversation entries.
+  - The shared hotels_backend public client routes already return and accept the fields Zad needs.
+  - AI/backend logic changes for date-only follow-up hiccups are documented in:
+    D:\JannatBooking\hotels_backend\application_structure_backend.txt

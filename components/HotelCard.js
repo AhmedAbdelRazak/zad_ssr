@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
 	AirVent,
 	ArrowRight,
@@ -95,8 +95,11 @@ const addressLine = (hotel = {}) =>
 export default function HotelCard({ hotel = {}, priority = false }) {
 	const { t, language, isArabic, hrefWithLanguage } = useZadApp();
 	const [amenitiesExpanded, setAmenitiesExpanded] = useState(false);
+	const [activeImageIndex, setActiveImageIndex] = useState(0);
+	const touchStartRef = useRef({ x: 0, y: 0 });
+	const swipeHandledRef = useRef(false);
 	const images = hotelImages(hotel);
-	const image = images[0] || DEFAULT_HERO_IMAGE;
+	const image = images[activeImageIndex] || images[0] || DEFAULT_HERO_IMAGE;
 	const slug = slugifyHotel(hotel.hotelName);
 	const price = minBasePrice(hotel);
 	const oldPrice = price ? Math.ceil(price * 1.1) : 0;
@@ -129,10 +132,53 @@ export default function HotelCard({ hotel = {}, priority = false }) {
 		});
 	};
 
+	const showImage = (index) => {
+		if (!images.length) return;
+		setActiveImageIndex((index + images.length) % images.length);
+	};
+
+	const showNextImage = () => showImage(activeImageIndex + 1);
+	const showPreviousImage = () => showImage(activeImageIndex - 1);
+
+	const handleMainImageClick = () => {
+		if (swipeHandledRef.current) return;
+		showNextImage();
+	};
+
+	const handleTouchStart = (event) => {
+		const touch = event.touches?.[0];
+		if (!touch) return;
+		touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+	};
+
+	const handleTouchEnd = (event) => {
+		const touch = event.changedTouches?.[0];
+		if (!touch) return;
+		const deltaX = touch.clientX - touchStartRef.current.x;
+		const deltaY = touch.clientY - touchStartRef.current.y;
+		if (Math.abs(deltaX) < 38 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+		swipeHandledRef.current = true;
+		window.setTimeout(() => {
+			swipeHandledRef.current = false;
+		}, 350);
+		if (deltaX > 0) {
+			isArabic ? showNextImage() : showPreviousImage();
+		} else {
+			isArabic ? showPreviousImage() : showNextImage();
+		}
+	};
+
 	return (
 		<article className="hotel-card premium-card" dir={isArabic ? "rtl" : "ltr"}>
 			<div className="hotel-card-gallery">
-				<Link href={hrefWithLanguage(`/single-hotel/${slug}`)} className="hotel-card-main-image" aria-label={`View ${hotel.hotelName}`}>
+				<button
+					type="button"
+					className="hotel-card-main-image"
+					aria-label={isArabic ? "\u062a\u063a\u064a\u064a\u0631 \u0635\u0648\u0631\u0629 \u0627\u0644\u0641\u0646\u062f\u0642" : "Change hotel photo"}
+					onClick={handleMainImageClick}
+					onTouchStart={handleTouchStart}
+					onTouchEnd={handleTouchEnd}
+				>
 					<OptimizedImage
 						src={image}
 						alt={displayName || "ZAD hotel"}
@@ -142,21 +188,28 @@ export default function HotelCard({ hotel = {}, priority = false }) {
 					/>
 					<span className="hotel-card-image-dots" aria-hidden="true">
 						{images.slice(0, 5).map((item, index) => (
-							<i className={index === 0 ? "active" : ""} key={`${item}-${index}`} />
+							<i className={index === activeImageIndex ? "active" : ""} key={`${item}-${index}`} />
 						))}
 					</span>
-				</Link>
-				<div className="hotel-card-thumbs" aria-hidden="true">
+				</button>
+				<div className="hotel-card-thumbs" aria-label={isArabic ? "\u0635\u0648\u0631 \u0627\u0644\u0641\u0646\u062f\u0642" : "Hotel photos"}>
 					{images.slice(0, 4).map((item, index) => (
-						<OptimizedImage
-							src={item}
-							alt=""
-							width={120}
-							height={74}
-							sizes="90px"
-							quality={66}
+						<button
+							type="button"
+							className={index === activeImageIndex ? "active" : ""}
 							key={`${item}-thumb-${index}`}
-						/>
+							onClick={() => showImage(index)}
+							aria-label={`${isArabic ? "\u0639\u0631\u0636 \u0627\u0644\u0635\u0648\u0631\u0629" : "Show photo"} ${index + 1}`}
+						>
+							<OptimizedImage
+								src={item}
+								alt=""
+								width={120}
+								height={74}
+								sizes="90px"
+								quality={66}
+							/>
+						</button>
 					))}
 				</div>
 			</div>

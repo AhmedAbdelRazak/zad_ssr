@@ -1154,3 +1154,51 @@ Production Deployment Result - Zad Lower Navbar Metallic Visual Pass - 2026-06-1
 - PM2/log health:
   - zad-ssr PM2 status was online.
   - zad-ssr error log had no new entries during verification.
+
+Zad Chat, Navbar, And Hotel Card Carousel UX Pass - 2026-06-10
+- Purpose:
+  - Make the Zad support widget behave closer to the mature Jannat Booking chat experience.
+  - Prevent guests from needing to scroll manually to the latest support/AI message.
+  - Show backend quick-reply buttons such as Confirm, Skip, and correction options inside Zad chat.
+  - Add a Zad-only support topic dropdown when opening a new web chat.
+  - Keep the desktop navigation labels on one line in Arabic and English.
+  - Make hotel-card image thumbnails and mobile swipe actually change the displayed main image.
+- Frontend files updated:
+  - D:\JannatBooking\zad_ssr\components\SupportWidget.js
+    - Adds Support topic to the start form with Zad-scoped topics:
+      room booking/availability, existing reservation question, payment/invoice, hotel services, complaint/urgent help, and other.
+    - Sends the selected topic as inquiryAbout and includes the topic in inquiryDetails.
+    - Keeps selected hotel matching safe when IDs arrive as ObjectIds or strings.
+    - Adds a real messages scroll container and bottom marker.
+    - Scrolls immediately to the latest message after long conversations render, with a later layout pass for quick-reply sizing.
+    - Renders quickReplies from the shared support-case backend only on the latest agent/AI message.
+    - Sends the quick-reply value back through the existing public support-case PUT route.
+    - Adds a small in-flight guard so rapid quick-reply double clicks do not send duplicate guest messages.
+  - D:\JannatBooking\zad_ssr\components\HotelCard.js
+    - Converts the static hotel-card image area into a lightweight client carousel.
+    - Main image click advances to the next image.
+    - Thumbnail buttons select the clicked image.
+    - Mobile touch swipe changes the image and respects LTR/RTL direction.
+    - Swipe handling suppresses the follow-up click event so one swipe does not advance twice.
+  - D:\JannatBooking\zad_ssr\app\globals.css
+    - Keeps main navigation links and header actions nowrap on desktop.
+    - Tightens the desktop header grid so Arabic labels do not wrap.
+    - Styles active/focused carousel thumbnails and keeps the main image touch-friendly.
+    - Adds quick-reply button styling inside the chat window.
+- Local verification:
+  - node -c passed for:
+    - zad_ssr/components/SupportWidget.js
+    - zad_ssr/components/HotelCard.js
+  - npm run build passed.
+  - Playwright checked:
+    - /our-hotels?lang=ar at 1350px desktop.
+    - /our-hotels?lang=en at 390px mobile/touch.
+    - Support widget with mocked support-case API responses.
+  - Results:
+    - Arabic desktop nav link heights stayed at 42px with no wrapped labels.
+    - First hotel-card thumbnail click changed the main image.
+    - Main hotel-card image click advanced to another image.
+    - Mobile touch swipe changed the main image.
+    - Support topic dropdown was visible before starting a chat.
+    - Mocked backend quickReply "Skip" rendered in Zad chat and sent "Skip email" through the public support-case update payload.
+    - Long mocked chat with 25 messages scrolled exactly to the latest message/quick reply.

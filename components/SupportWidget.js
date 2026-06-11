@@ -13,6 +13,45 @@ const brandText = (value = "") =>
 		.replace(/Jannat Booking/gi, BRAND_NAME)
 		.replace(/support@jannatbooking\.com/gi, CONTACT_EMAIL);
 
+const supportTopicOptions = (isArabic) => [
+	{
+		value: "reserve_room",
+		label: isArabic ? "\u062d\u062c\u0632 \u063a\u0631\u0641\u0629 \u0623\u0648 \u0627\u0644\u062a\u0648\u0641\u0631" : "Room booking or availability",
+	},
+	{
+		value: "reservation_inquiry",
+		label: isArabic ? "\u0627\u0633\u062a\u0641\u0633\u0627\u0631 \u0639\u0646 \u062d\u062c\u0632" : "Existing reservation question",
+	},
+	{
+		value: "payment_inquiry",
+		label: isArabic ? "\u0627\u0644\u062f\u0641\u0639 \u0623\u0648 \u0627\u0644\u0641\u0627\u062a\u0648\u0631\u0629" : "Payment or invoice",
+	},
+	{
+		value: "hotel_service",
+		label: isArabic ? "\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0641\u0646\u062f\u0642" : "Hotel services",
+	},
+	{
+		value: "hotel_complaint",
+		label: isArabic ? "\u0634\u0643\u0648\u0649 \u0623\u0648 \u0645\u0633\u0627\u0639\u062f\u0629 \u0639\u0627\u062c\u0644\u0629" : "Complaint or urgent help",
+	},
+	{
+		value: "other",
+		label: isArabic ? "\u0645\u0648\u0636\u0648\u0639 \u0622\u062e\u0631" : "Something else",
+	},
+];
+
+const quickRepliesForMessage = (message = {}) =>
+	Array.isArray(message.quickReplies)
+		? message.quickReplies
+				.map((reply) => ({
+					label: String(reply?.label || "").trim(),
+					value: String(reply?.value || reply?.label || "").trim(),
+					action: String(reply?.action || "").trim(),
+				}))
+				.filter((reply) => reply.label && reply.value)
+				.slice(0, 4)
+		: [];
+
 export default function SupportWidget({ hotels = [], website = {} }) {
 	const { t, isArabic } = useZadApp();
 	const [open, setOpen] = useState(false);
@@ -22,6 +61,7 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 		name: "",
 		contact: "",
 		hotelId: "",
+		topic: "reserve_room",
 		message: "",
 	});
 	const [reply, setReply] = useState("");
@@ -31,12 +71,20 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 	const [typingStatus, setTypingStatus] = useState("");
 	const socketRef = useRef(null);
 	const typingTimerRef = useRef(null);
+	const messagesContainerRef = useRef(null);
+	const messagesEndRef = useRef(null);
+	const replyInFlightRef = useRef(false);
 	const languageName = isArabic ? "Arabic" : "English";
 	const languageCode = isArabic ? "ar" : "en";
 	const chatLabel = isArabic ? "تحدث مع زاد" : "Chat With Zad";
 	const selectedHotel = useMemo(
-		() => hotels.find((hotel) => hotel._id === form.hotelId),
+		() => hotels.find((hotel) => String(hotel._id) === String(form.hotelId)),
 		[form.hotelId, hotels]
+	);
+	const topics = useMemo(() => supportTopicOptions(isArabic), [isArabic]);
+	const selectedTopic = useMemo(
+		() => topics.find((topic) => topic.value === form.topic) || topics[0],
+		[form.topic, topics]
 	);
 
 	const resetCaseState = useCallback(() => {
@@ -58,6 +106,7 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 				setForm((current) => ({
 					...current,
 					hotelId: hotelId || current.hotelId,
+					topic: detail.topic || current.topic || "reserve_room",
 					message: detail.message || current.message,
 				}));
 			}
@@ -153,6 +202,27 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 		};
 	}, [caseId, form.name, isArabic, open, resetCaseState, t]);
 
+	const scrollToBottom = useCallback((behavior = "smooth") => {
+		const container = messagesContainerRef.current;
+		if (container) {
+			container.scrollTo({ top: container.scrollHeight, behavior });
+			return;
+		}
+		messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
+	}, []);
+
+	useEffect(() => {
+		if (!open || !caseId) return;
+		const frame = window.requestAnimationFrame(() => scrollToBottom("auto"));
+		const timer = window.setTimeout(() => scrollToBottom("auto"), 180);
+		const lateTimer = window.setTimeout(() => scrollToBottom("auto"), 650);
+		return () => {
+			window.cancelAnimationFrame(frame);
+			window.clearTimeout(timer);
+			window.clearTimeout(lateTimer);
+		};
+	}, [caseId, messages.length, open, scrollToBottom, typingStatus]);
+
 	const updateForm = (key, value) => setForm((current) => ({ ...current, [key]: value }));
 
 	const startChat = async (event) => {
@@ -181,8 +251,10 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 				role: 0,
 				customerEmail: form.contact,
 				hotelId: selectedHotel._id,
-				inquiryAbout: "reserve_room",
-				inquiryDetails: `[Preferred Language: ${languageName} (${languageCode})] ${form.message}`,
+				inquiryAbout: selectedTopic?.value || "reserve_room",
+				inquiryDetails: `[Preferred Language: ${languageName} (${languageCode})] [Topic: ${
+					selectedTopic?.label || "Room booking or availability"
+				}] ${form.message}`,
 				supportScope: "hotel",
 				supporterId: ownerId,
 				ownerId,
@@ -222,9 +294,11 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 		}
 	};
 
-	const sendReply = async (event) => {
-		event.preventDefault();
-		if (!caseId || !reply.trim()) return;
+	const sendReply = async (event, overrideText = "") => {
+		event?.preventDefault?.();
+		const messageText = String(overrideText || reply || "").trim();
+		if (!caseId || !messageText || replyInFlightRef.current) return;
+		replyInFlightRef.current = true;
 		setBusy(true);
 		setError("");
 		setNotice("");
@@ -234,9 +308,9 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 					customerName: form.name || "Guest",
 					customerEmail: form.contact || "guest@zadhotels.com",
 				},
-				message: reply.trim(),
+				message: messageText,
 				inquiryAbout: "support",
-				inquiryDetails: reply.trim(),
+				inquiryDetails: messageText,
 				preferredLanguage: languageName,
 				preferredLanguageCode: languageCode,
 			};
@@ -258,8 +332,16 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 			}
 			setError(err.message || "Message failed.");
 		} finally {
+			replyInFlightRef.current = false;
 			setBusy(false);
 		}
+	};
+
+	const handleQuickReply = (quickReply) => {
+		const value = String(quickReply?.value || quickReply?.label || "").trim();
+		if (!value || busy) return;
+		setReply("");
+		sendReply(null, value);
 	};
 
 	const endChat = async () => {
@@ -306,7 +388,7 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 					{notice ? <p className="notice">{notice}</p> : null}
 					{caseId ? (
 						<>
-							<div className="messages">
+							<div className="messages" ref={messagesContainerRef} role="log" aria-live="polite">
 								{messages.map((message, index) => {
 									const sender = brandText(message?.messageBy?.customerName || "Support");
 									const text = brandText(message?.message || "");
@@ -314,14 +396,35 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 										message?.messageBy?.customerEmail &&
 										form.contact &&
 										message.messageBy.customerEmail === form.contact;
+									const quickReplies = quickRepliesForMessage(message);
+									const showQuickReplies =
+										!isGuest &&
+										quickReplies.length > 0 &&
+										index === messages.length - 1;
 									return (
 										<div className={`bubble ${isGuest ? "guest" : "agent"}`} key={`${index}-${text}`}>
 											<span>{sender}</span>
 											<p>{text}</p>
+											{showQuickReplies ? (
+												<div className="quick-replies">
+													{quickReplies.map((quickReply) => (
+														<button
+															key={`${quickReply.action || quickReply.label}-${quickReply.value}`}
+															type="button"
+															className="quick-reply"
+															onClick={() => handleQuickReply(quickReply)}
+															disabled={busy}
+														>
+															{brandText(quickReply.label)}
+														</button>
+													))}
+												</div>
+											) : null}
 										</div>
 									);
 								})}
 								{typingStatus ? <div className="typing-line">{typingStatus}</div> : null}
+								<div ref={messagesEndRef} />
 							</div>
 							<form className="reply-form" onSubmit={sendReply}>
 								<input
@@ -354,6 +457,16 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 									{hotels.map((hotel) => (
 										<option key={hotel._id} value={hotel._id}>
 											{titleCase(hotel.hotelName)}
+										</option>
+									))}
+								</select>
+							</div>
+							<div className="field support-field">
+								<label>{isArabic ? "\u0646\u0648\u0639 \u0627\u0644\u0645\u0633\u0627\u0639\u062f\u0629" : "Support topic"}</label>
+								<select value={form.topic} onChange={(event) => updateForm("topic", event.target.value)}>
+									{topics.map((topic) => (
+										<option key={topic.value} value={topic.value}>
+											{topic.label}
 										</option>
 									))}
 								</select>
@@ -583,11 +696,13 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 				}
 
 				.messages {
+					flex: 1 1 auto;
 					min-height: 260px;
 					overflow-y: auto;
 					display: flex;
 					flex-direction: column;
 					gap: 10px;
+					scroll-behavior: smooth;
 					background:
 						linear-gradient(180deg, rgba(248, 251, 255, 0.96), rgba(255, 255, 255, 0.96)),
 						#f7f8fb;
@@ -620,6 +735,44 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 					white-space: pre-wrap;
 					line-height: 1.45;
 					font-size: 14px;
+				}
+
+				.quick-replies {
+					display: flex;
+					flex-wrap: wrap;
+					gap: 8px;
+					margin-top: 10px;
+				}
+
+				.quick-reply {
+					min-height: 36px;
+					border: 1px solid rgba(15, 143, 112, 0.28);
+					border-radius: 999px;
+					padding: 0 13px;
+					color: var(--zad-blue);
+					background:
+						linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(239, 250, 247, 0.98)),
+						#fff;
+					font-size: 13px;
+					font-weight: 950;
+					cursor: pointer;
+					box-shadow: 0 7px 14px rgba(15, 23, 42, 0.07);
+					transition:
+						transform 160ms ease,
+						border-color 160ms ease,
+						box-shadow 160ms ease;
+				}
+
+				.quick-reply:hover {
+					border-color: rgba(15, 143, 112, 0.46);
+					transform: translateY(-1px);
+					box-shadow: 0 10px 18px rgba(15, 23, 42, 0.1);
+				}
+
+				.quick-reply:disabled {
+					cursor: not-allowed;
+					opacity: 0.62;
+					transform: none;
 				}
 
 				.typing-line {
