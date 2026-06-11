@@ -1232,3 +1232,116 @@ Production Deployment Result - Zad Chat, Navbar, And Carousel UX Pass - 2026-06-
 - PM2/log health:
   - zad-ssr PM2 status was online after restart.
   - zad-ssr log showed Next.js ready on port 3105.
+
+Zad PageSpeed Performance And Accessibility Pass - 2026-06-10
+- Source report:
+  - Google PageSpeed Insights mobile report for:
+    https://zadhotels.jannatbooking.com/
+  - Report score before this pass:
+    - Performance: 90
+    - Accessibility: 89
+    - Best Practices: 100
+    - SEO: 100
+  - Main findings:
+    - Three hero carousel images were being counted in the initial viewport image delivery audit.
+    - Cloudflare was loading /cdn-cgi/scripts/.../email-decode.min.js because raw email addresses were visible in the page HTML.
+    - The search panel had select controls without direct label/htmlFor links.
+    - The search panel heading skipped from the hero H1 to an H3.
+    - The small FEATURED HOTELS eyebrow color was too low contrast on a white section.
+    - The chat/socket bundle was part of the initial client path even before a guest opened or started a chat.
+- Frontend files updated:
+  - D:\JannatBooking\zad_ssr\components\HeroCarousel.js
+    - Now renders only the active hero image on initial load instead of mounting every slide image at once.
+    - Keeps the same visual hero and zoom-out feel.
+    - Keeps slide arrows working on desktop.
+    - Keeps carousel transition smooth by temporarily retaining the previous slide as a leaving slide.
+    - Drops hero image quality from 80 to 66 through Next Image to reduce mobile image transfer size without changing layout or cropping.
+  - D:\JannatBooking\zad_ssr\app\globals.css
+    - Adds .hero-slide.leaving for smooth carousel transitions.
+    - Darkens the normal .eyebrow color on white sections for better contrast.
+    - Keeps .page-hero .eyebrow bright green on dark hero imagery.
+    - Changes blinking green chat dots to transform/opacity animation instead of animating box-shadow.
+  - D:\JannatBooking\zad_ssr\components\SearchPanel.js
+    - Changes the visible search panel heading from h3 to h2 while keeping the same styling class.
+    - Adds stable IDs and htmlFor labels for destination, check-in, check-out, room type, and guests.
+  - D:\JannatBooking\zad_ssr\lib\email.js
+    - New helper for masking website email addresses before they are serialized into HTML.
+    - Keeps email links clickable by rebuilding the mailto target in the browser.
+  - D:\JannatBooking\zad_ssr\components\EmailText.js
+    - Renders email text without exposing a raw @ address in server HTML.
+    - Restores the normal @ display after hydration, so the visitor still sees the expected address.
+  - D:\JannatBooking\zad_ssr\components\Header.js
+  - D:\JannatBooking\zad_ssr\components\Footer.js
+  - D:\JannatBooking\zad_ssr\components\ContactCards.js
+    - Use the new safe email click behavior.
+  - D:\JannatBooking\zad_ssr\app\layout.js
+  - D:\JannatBooking\zad_ssr\app\page.js
+  - D:\JannatBooking\zad_ssr\app\checkout\page.js
+  - D:\JannatBooking\zad_ssr\app\contact\page.js
+  - D:\JannatBooking\zad_ssr\app\single-hotel\[slug]\page.js
+    - Mask website email fields before sending website settings into client components.
+  - D:\JannatBooking\zad_ssr\components\SupportWidget.js
+    - Removes the top-level socket.io-client import.
+    - Dynamically imports socket.io-client only after a real support case is open.
+    - Keeps the support button, support form, polling, quick replies, typing events, and Socket.IO room behavior unchanged.
+  - D:\JannatBooking\zad_ssr\lib\constants.js
+  - D:\JannatBooking\zad_ssr\lib\api.js
+  - D:\JannatBooking\zad_ssr\lib\i18n.js
+    - Avoid hard-written raw Zad email strings in defaults where practical.
+- Local verification:
+  - npm run build passed.
+  - Local production server checked on http://127.0.0.1:3106.
+  - HTML check results:
+    - official@zadhotels: false
+    - contact@zadhotels: false
+    - email-decode: false
+    - official [at] zadhotels: true
+  - Playwright desktop check at 1365x768:
+    - Homepage opened in Arabic.
+    - Hero initially rendered 1 hero image.
+    - Hero next button changed the H1 from "زاد للفنادق" to "إقامة بثقة".
+    - After slide click, hero image count was 2 because the previous slide is intentionally retained briefly for a smooth fade.
+    - Support panel opened.
+    - Search form had 5 htmlFor labels.
+    - Search heading tag was H2.
+    - No browser page errors.
+  - Playwright mobile check at 390x844:
+    - Homepage opened in Arabic.
+    - Support button was visible.
+    - Hero initially rendered 1 hero image.
+    - No browser page errors.
+  - Screenshots were visually reviewed:
+    - Desktop still showed the same Zad metallic header, hero, and support button.
+    - Mobile Arabic still showed the same hero, mobile header, search panel overlap, and chat button.
+
+Production Deployment Result - Zad PageSpeed Performance And Accessibility Pass - 2026-06-10
+- GitHub push completed:
+  - zad_ssr main commit:
+    f608c9b - Improve Zad homepage performance
+- Production server pull/build completed on ssh jannat:
+  - /home/ahmedadmin/Hotels/zad_ssr fast-forwarded from adc82e2 to f608c9b.
+  - npm ci completed with 0 vulnerabilities.
+  - npm run build passed.
+  - zad-ssr restarted through PM2 and stayed online.
+  - PM2 process list was saved.
+- Live HTTP verification:
+  - https://zadhotels.jannatbooking.com/?psfix=<timestamp> returned HTML successfully.
+  - Live HTML check results:
+    - official@zadhotels: false
+    - contact@zadhotels: false
+    - email-decode: false
+    - official [at] zadhotels: true
+- Live browser verification:
+  - Playwright checked:
+    https://zadhotels.jannatbooking.com/?lang=ar&psfix=<timestamp>
+  - Results:
+    - Hero initially rendered 1 hero image.
+    - Hero next button changed the H1 from "زاد للفنادق" to "إقامة بثقة".
+    - Support panel opened.
+    - Search form had 5 htmlFor labels.
+    - Search heading tag was H2.
+    - No browser page errors.
+- PM2/log health:
+  - zad-ssr PM2 status was online after restart.
+  - zad-ssr out log showed Next.js ready on port 3105.
+  - zad-ssr error log had no new entries in the checked tail.

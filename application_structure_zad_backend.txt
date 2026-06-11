@@ -600,3 +600,22 @@ Production Result - Zad Support Chat Frontend Integration - 2026-06-10
 - Production process:
   - zad-ssr restarted through PM2 and stayed online.
   - No new backend route was needed for this Zad-specific frontend integration.
+
+Zad PageSpeed Performance Pass Backend Notes - 2026-06-10
+- Purpose:
+  - Record that the PageSpeed/accessibility work for https://zadhotels.jannatbooking.com/ was frontend-only.
+- Backend impact:
+  - No hotels_backend controller, route, schema, Socket.IO, PayPal, reservation, or support-case logic was changed.
+  - No backend deployment was required for this pass.
+  - Existing shared APIs remained unchanged:
+    - GET /api/zad-website-document
+    - GET /api/zad/active-hotel-list
+    - GET /api/zad/active-hotels
+    - GET /api/zad/distinct-rooms
+    - POST /api/support-cases/new
+    - GET /api/support-cases/client/:caseId
+    - PUT /api/support-cases/client/:caseId
+- Production note:
+  - Only the zad_ssr app was pulled, rebuilt, and restarted on ssh jannat.
+  - PM2 showed zad-ssr online after the restart.
+  - hotels-backend was observed online in the PM2 process list but was not restarted for this frontend-only PageSpeed pass.
