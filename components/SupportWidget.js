@@ -32,6 +32,7 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 	const typingTimerRef = useRef(null);
 	const languageName = isArabic ? "Arabic" : "English";
 	const languageCode = isArabic ? "ar" : "en";
+	const chatLabel = isArabic ? "تحدث مع زاد" : "Chat With Zad";
 	const selectedHotel = useMemo(
 		() => hotels.find((hotel) => hotel._id === form.hotelId),
 		[form.hotelId, hotels]
@@ -214,18 +215,19 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 
 	return (
 		<div className="support-root" dir={isArabic ? "rtl" : "ltr"}>
-			<button className="support-button" type="button" onClick={() => setOpen(true)} aria-label="Open ZAD Hotels support">
+			<button className="support-button" type="button" onClick={() => setOpen(true)} aria-label={chatLabel}>
 				<MessageCircle size={21} />
-				<span>{t("support")}</span>
+				<span className="support-status-dot" aria-hidden="true" />
+				<span>{chatLabel}</span>
 			</button>
 			{open ? (
 				<section className="support-panel" aria-label="ZAD Hotels support">
-					<header>
-						<div>
+					<header className="support-head">
+						<div className="support-head-copy">
 							<strong>{BRAND_NAME}</strong>
 							<span>{isArabic ? "دعم الفنادق" : "Hotel support"}</span>
 						</div>
-						<button type="button" onClick={() => setOpen(false)} aria-label="Close support">
+						<button className="support-close" type="button" onClick={() => setOpen(false)} aria-label="Close support">
 							<X size={20} />
 						</button>
 					</header>
@@ -263,16 +265,16 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 							</form>
 						</>
 					) : (
-						<form className="start-form" onSubmit={startChat}>
-							<div className="field">
+						<form className="start-form support-form" onSubmit={startChat}>
+							<div className="field support-field">
 								<label>{t("name")}</label>
 								<input value={form.name} onChange={(event) => updateForm("name", event.target.value)} />
 							</div>
-							<div className="field">
+							<div className="field support-field">
 								<label>{t("contact")}</label>
 								<input dir="ltr" value={form.contact} onChange={(event) => updateForm("contact", event.target.value)} />
 							</div>
-							<div className="field">
+							<div className="field support-field">
 								<label>{t("hotel")}</label>
 								<select value={form.hotelId} onChange={(event) => updateForm("hotelId", event.target.value)}>
 									<option value="">{isArabic ? "اختر فندق زاد" : "Choose a Zad hotel"}</option>
@@ -283,7 +285,7 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 									))}
 								</select>
 							</div>
-							<div className="field">
+							<div className="field support-field">
 								<label>{t("message")}</label>
 								<textarea value={form.message} onChange={(event) => updateForm("message", event.target.value)} placeholder={isArabic ? "اكتب الغرفة أو التواريخ التي تبحث عنها." : "Tell us the room or dates you are looking for."} />
 							</div>
@@ -300,59 +302,107 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 					position: fixed;
 					right: 18px;
 					bottom: 18px;
-					z-index: 70;
+					z-index: 90;
 				}
 
 				.support-button {
 					min-height: 48px;
 					border: 0;
 					border-radius: 999px;
-					padding: 0 17px;
+					padding: 0 18px;
 					color: #fff;
 					background: linear-gradient(135deg, var(--zad-purple), var(--zad-blue) 48%, var(--zad-green));
 					box-shadow: 0 14px 32px rgba(8, 9, 13, 0.28);
 					display: inline-flex;
 					align-items: center;
-					gap: 9px;
+					gap: 8px;
 					font-weight: 950;
 					cursor: pointer;
+				}
+
+				.support-status-dot {
+					width: 9px;
+					height: 9px;
+					border-radius: 999px;
+					background: #32f07d;
+					box-shadow:
+						0 0 0 0 rgba(50, 240, 125, 0.56),
+						0 0 12px rgba(50, 240, 125, 0.88);
+					animation: zadChatPulse 1.5s ease-out infinite;
+					flex: 0 0 auto;
+				}
+
+				@keyframes zadChatPulse {
+					0% {
+						box-shadow:
+							0 0 0 0 rgba(50, 240, 125, 0.56),
+							0 0 12px rgba(50, 240, 125, 0.88);
+					}
+					72% {
+						box-shadow:
+							0 0 0 9px rgba(50, 240, 125, 0),
+							0 0 12px rgba(50, 240, 125, 0.78);
+					}
+					100% {
+						box-shadow:
+							0 0 0 0 rgba(50, 240, 125, 0),
+							0 0 12px rgba(50, 240, 125, 0.88);
+					}
 				}
 
 				.support-panel {
 					position: absolute;
 					right: 0;
 					bottom: 62px;
-					width: min(380px, calc(100vw - 24px));
-					max-height: min(680px, calc(100vh - 110px));
+					width: min(410px, calc(100vw - 28px));
+					max-height: min(720px, calc(100vh - 112px));
 					display: flex;
 					flex-direction: column;
-					background: #fff;
-					border: 1px solid var(--zad-border);
+					background:
+						linear-gradient(180deg, #ffffff 0%, #fbfcff 100%),
+						#ffffff;
+					border: 1px solid rgba(36, 84, 125, 0.16);
 					border-radius: 8px;
 					overflow: hidden;
-					box-shadow: var(--zad-shadow);
+					box-shadow:
+						0 24px 55px rgba(8, 9, 13, 0.26),
+						0 0 0 1px rgba(255, 255, 255, 0.72);
 				}
 
-				header {
+				.support-head {
 					color: #fff;
-					padding: 14px;
-					background: var(--zad-black);
+					padding: 16px 18px;
+					background:
+						linear-gradient(135deg, rgba(100, 22, 110, 0.96), rgba(23, 57, 95, 0.98) 52%, rgba(15, 143, 112, 0.92)),
+						var(--zad-black);
 					display: flex;
 					justify-content: space-between;
 					align-items: center;
+					gap: 12px;
 				}
 
-				header strong,
-				header span {
+				.support-head-copy {
+					display: grid;
+					gap: 3px;
+				}
+
+				.support-head strong,
+				.support-head span {
 					display: block;
 				}
 
-				header span {
-					color: rgba(255, 255, 255, 0.68);
-					font-size: 12px;
+				.support-head strong {
+					font-size: 16px;
+					line-height: 1.15;
 				}
 
-				header button {
+				.support-head span {
+					color: rgba(255, 255, 255, 0.78);
+					font-size: 12px;
+					font-weight: 850;
+				}
+
+				.support-close {
 					width: 36px;
 					height: 36px;
 					border-radius: 8px;
@@ -367,12 +417,72 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 
 				.start-form,
 				.messages {
-					padding: 14px;
+					padding: 18px;
 				}
 
 				.start-form {
 					display: grid;
-					gap: 10px;
+					gap: 12px;
+					background:
+						radial-gradient(circle at top right, rgba(15, 143, 112, 0.08), transparent 34%),
+						#ffffff;
+				}
+
+				.support-field {
+					display: grid;
+					gap: 6px;
+				}
+
+				.support-field label {
+					color: var(--zad-blue);
+					font-size: 12px;
+					font-weight: 950;
+					line-height: 1.2;
+				}
+
+				.support-field input,
+				.support-field select,
+				.support-field textarea {
+					width: 100%;
+					border: 1px solid rgba(36, 84, 125, 0.18);
+					border-radius: 8px;
+					background: rgba(255, 255, 255, 0.94);
+					color: var(--zad-ink);
+					box-shadow: 0 6px 14px rgba(15, 23, 42, 0.04);
+					outline: none;
+					transition:
+						border-color 160ms ease,
+						box-shadow 160ms ease,
+						background 160ms ease;
+				}
+
+				.support-field input,
+				.support-field select {
+					min-height: 46px;
+					padding: 0 13px;
+				}
+
+				.support-field textarea {
+					min-height: 92px;
+					padding: 12px 13px;
+					line-height: 1.55;
+					resize: vertical;
+				}
+
+				.support-field input:focus,
+				.support-field select:focus,
+				.support-field textarea:focus {
+					border-color: rgba(15, 143, 112, 0.5);
+					background: #fff;
+					box-shadow:
+						0 0 0 3px rgba(15, 143, 112, 0.1),
+						0 10px 18px rgba(15, 23, 42, 0.06);
+				}
+
+				.support-form .btn {
+					width: 100%;
+					min-height: 48px;
+					margin-top: 2px;
 				}
 
 				.messages {
@@ -381,7 +491,9 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 					display: flex;
 					flex-direction: column;
 					gap: 10px;
-					background: #f7f8fb;
+					background:
+						linear-gradient(180deg, rgba(248, 251, 255, 0.96), rgba(255, 255, 255, 0.96)),
+						#f7f8fb;
 				}
 
 				.bubble {
@@ -428,15 +540,17 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 					display: grid;
 					grid-template-columns: 1fr 44px;
 					gap: 8px;
-					padding: 10px;
+					padding: 12px;
 					border-top: 1px solid var(--zad-border);
+					background: #fff;
 				}
 
 				.reply-form input {
-					border: 1px solid var(--zad-border);
+					border: 1px solid rgba(36, 84, 125, 0.18);
 					border-radius: 8px;
-					min-height: 42px;
-					padding: 0 11px;
+					min-height: 44px;
+					padding: 0 12px;
+					outline: none;
 				}
 
 				.reply-form button {
@@ -465,22 +579,43 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 					}
 
 					.support-button {
-						width: 54px;
+						width: auto;
+						max-width: calc(100vw - 24px);
 						height: 54px;
 						min-height: 54px;
-						padding: 0;
+						padding: 0 15px;
 						justify-content: center;
 					}
 
 					.support-button span {
-						display: none;
+						display: inline-flex;
 					}
 
 					.support-panel {
-						right: -2px;
+						position: fixed;
+						left: 12px;
+						right: 12px;
 						top: auto;
-						bottom: 66px;
-						max-height: calc(100vh - 110px);
+						bottom: 76px;
+						width: auto;
+						max-height: calc(100dvh - 96px);
+						box-shadow:
+							0 22px 50px rgba(8, 9, 13, 0.3),
+							0 0 0 1px rgba(255, 255, 255, 0.76);
+					}
+
+					.start-form,
+					.messages {
+						padding: 14px;
+					}
+
+					.support-field input,
+					.support-field select {
+						min-height: 44px;
+					}
+
+					.support-field textarea {
+						min-height: 84px;
 					}
 				}
 			`}</style>

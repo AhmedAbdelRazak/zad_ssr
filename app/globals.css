@@ -1100,40 +1100,74 @@ html[dir="rtl"] .ottoman-hero::before {
 
 .hotel-section-nav {
 	position: sticky;
-	top: 78px;
-	z-index: 60;
-	background: rgba(255, 255, 255, 0.96);
-	backdrop-filter: blur(16px);
-	border-bottom: 1px solid rgba(36, 84, 125, 0.13);
-	box-shadow: 0 12px 22px rgba(15, 23, 42, 0.06);
+	top: 0;
+	z-index: 75;
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 252, 255, 0.96)),
+		#ffffff;
+	backdrop-filter: blur(18px);
+	border-top: 1px solid rgba(255, 255, 255, 0.72);
+	border-bottom: 1px solid rgba(36, 84, 125, 0.14);
+	box-shadow:
+		0 12px 28px rgba(15, 23, 42, 0.08),
+		inset 0 1px rgba(255, 255, 255, 0.86);
+}
+
+.hotel-section-nav::before {
+	content: "";
+	position: absolute;
+	inset: 0 0 auto;
+	height: 3px;
+	background: var(--zad-metal-mixed);
 }
 
 .hotel-section-nav .container {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	min-height: 58px;
+	justify-content: center;
+	gap: 10px;
+	min-height: 62px;
 	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.hotel-section-nav .container::-webkit-scrollbar {
+	display: none;
 }
 
 .hotel-section-nav a {
-	min-height: 38px;
+	min-width: 96px;
+	min-height: 40px;
 	border-radius: 8px;
-	padding: 0 13px;
+	padding: 0 16px;
 	display: inline-flex;
 	align-items: center;
+	justify-content: center;
 	color: var(--zad-blue);
 	font-weight: 950;
 	white-space: nowrap;
+	transition:
+		background 160ms ease,
+		color 160ms ease,
+		box-shadow 160ms ease,
+		transform 160ms ease;
 }
 
 .hotel-section-nav a:hover {
+	transform: translateY(-1px);
 	color: #fff;
 	background: var(--zad-metal-mixed);
+	box-shadow: 0 10px 18px rgba(36, 84, 125, 0.13);
 }
 
 html[dir="rtl"] .hotel-section-nav a {
 	font-size: 16px;
+}
+
+.hotel-overview-section,
+.hotel-rooms-section,
+section#support {
+	scroll-margin-top: 78px;
 }
 
 .hotel-overview-section {
@@ -1286,15 +1320,81 @@ html[dir="rtl"] .hotel-section-nav a {
 	padding: 36px;
 }
 
-.checkout-summary,
 .checkout-form {
 	padding: clamp(18px, 3vw, 28px);
+}
+
+.checkout-summary {
+	padding: 0;
+	overflow: hidden;
+	background:
+		linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 251, 252, 0.92)),
+		radial-gradient(circle at top right, rgba(15, 143, 112, 0.14), transparent 34%),
+		radial-gradient(circle at bottom left, rgba(100, 22, 110, 0.12), transparent 32%);
 }
 
 .checkout-summary h2,
 .checkout-form h1 {
 	margin: 0 0 16px;
 	line-height: 1.12;
+}
+
+.checkout-summary-head {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 12px;
+	padding: clamp(18px, 2.5vw, 24px);
+	border-bottom: 1px solid rgba(36, 84, 125, 0.12);
+	background:
+		linear-gradient(135deg, rgba(36, 84, 125, 0.08), rgba(15, 143, 112, 0.08)),
+		rgba(255, 255, 255, 0.72);
+}
+
+.checkout-summary-head .eyebrow {
+	margin: 0 0 4px;
+}
+
+.checkout-summary-head h2 {
+	margin: 0;
+	font-size: clamp(24px, 2.7vw, 32px);
+}
+
+.summary-icon {
+	width: 44px;
+	height: 44px;
+	border-radius: 8px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	background:
+		linear-gradient(135deg, rgba(100, 22, 110, 0.96), rgba(15, 143, 112, 0.96)),
+		var(--zad-purple);
+	box-shadow: 0 14px 28px rgba(15, 20, 35, 0.16);
+}
+
+.summary-icon.small {
+	width: 34px;
+	height: 34px;
+	border-radius: 8px;
+	flex: 0 0 auto;
+	box-shadow: 0 10px 18px rgba(15, 20, 35, 0.12);
+}
+
+.summary-count {
+	justify-self: end;
+	padding: 8px 10px;
+	border-radius: 999px;
+	color: var(--zad-blue);
+	background: rgba(255, 255, 255, 0.86);
+	border: 1px solid rgba(36, 84, 125, 0.14);
+	font-size: 13px;
+	white-space: nowrap;
+}
+
+html[dir="rtl"] .summary-count {
+	justify-self: start;
 }
 
 .checkout-form > p {
@@ -1311,52 +1411,125 @@ html[dir="rtl"] .hotel-section-nav a {
 .checkout-items {
 	display: grid;
 	gap: 12px;
+	padding: 16px;
 }
 
 .checkout-items article {
 	display: grid;
-	grid-template-columns: 82px 1fr auto;
-	gap: 12px;
+	grid-template-columns: 92px minmax(0, 1fr) auto;
+	gap: 14px;
 	align-items: start;
-	border-bottom: 1px solid rgba(36, 84, 125, 0.1);
-	padding-bottom: 12px;
+	border: 1px solid rgba(36, 84, 125, 0.11);
+	border-radius: 8px;
+	padding: 11px;
+	background:
+		linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 252, 0.9)),
+		rgba(255, 255, 255, 0.86);
+	box-shadow: 0 12px 30px rgba(15, 20, 35, 0.05);
 }
 
-.checkout-items img {
-	width: 82px;
-	height: 82px;
+.checkout-item-image {
+	width: 92px;
+	aspect-ratio: 1;
 	border-radius: 8px;
+	overflow: hidden;
+	display: grid;
+	place-items: center;
+	color: var(--zad-green);
+	background: linear-gradient(135deg, rgba(15, 143, 112, 0.12), rgba(100, 22, 110, 0.1));
+	border: 1px solid rgba(36, 84, 125, 0.12);
+}
+
+.checkout-item-image img {
+	width: 100%;
+	height: 100%;
 	object-fit: cover;
 }
 
-.checkout-items strong,
-.checkout-items span,
-.checkout-items small {
+.checkout-item-main {
+	min-width: 0;
+	display: grid;
+	gap: 7px;
+}
+
+.checkout-items strong {
 	display: block;
+	color: var(--zad-ink);
+	line-height: 1.35;
+}
+
+.checkout-hotel-name,
+.checkout-items small {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+	flex-wrap: wrap;
+	line-height: 1.45;
 }
 
 .checkout-items small,
-.checkout-items span {
+.checkout-hotel-name {
 	color: var(--zad-muted);
+}
+
+.checkout-hotel-name svg,
+.checkout-items small svg {
+	color: var(--zad-green);
+	flex: 0 0 auto;
+}
+
+.checkout-dot {
+	width: 4px;
+	height: 4px;
+	border-radius: 999px;
+	background: rgba(36, 84, 125, 0.42);
+	flex: 0 0 auto;
+}
+
+.checkout-nights-value {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	white-space: nowrap;
 }
 
 .checkout-item-actions {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	margin-top: 8px;
+	margin-top: 2px;
+	flex-wrap: wrap;
+}
+
+.checkout-item-actions .ant-input-number {
+	width: 76px;
 }
 
 .checkout-item-actions button,
 .cart-row-actions button {
-	border: 0;
-	background: transparent;
+	border: 1px solid rgba(161, 45, 55, 0.18);
+	border-radius: 999px;
+	background: rgba(161, 45, 55, 0.06);
 	color: #a12d37;
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
 	font-weight: 900;
 	cursor: pointer;
+	padding: 7px 10px;
+	line-height: 1;
+}
+
+.checkout-line-price {
+	align-self: center;
+	padding: 9px 11px;
+	border-radius: 8px;
+	color: var(--zad-blue);
+	background: linear-gradient(135deg, rgba(45, 93, 145, 0.1), rgba(15, 143, 112, 0.08));
+	border: 1px solid rgba(36, 84, 125, 0.12);
+	font-size: 18px;
+	white-space: nowrap;
 }
 
 .checkout-total,
@@ -1368,6 +1541,17 @@ html[dir="rtl"] .hotel-section-nav a {
 	font-size: 18px;
 	font-weight: 950;
 	margin: 18px 0;
+}
+
+.checkout-total {
+	margin: 4px 16px 14px;
+	padding: 14px 16px;
+	border-radius: 8px;
+	color: var(--zad-ink);
+	background:
+		linear-gradient(135deg, rgba(248, 251, 252, 0.92), rgba(255, 255, 255, 0.98)),
+		linear-gradient(135deg, rgba(100, 22, 110, 0.1), rgba(15, 143, 112, 0.1));
+	border: 1px solid rgba(36, 84, 125, 0.12);
 }
 
 .payment-options {
@@ -1459,12 +1643,16 @@ html[dir="rtl"] .hotel-section-nav a {
 
 .checkout-payment-note {
 	border-radius: 8px;
-	padding: 10px;
+	padding: 12px;
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	color: var(--zad-blue);
-	background: rgba(45, 93, 145, 0.07);
+	gap: 10px;
+	margin: 0 16px 18px;
+	color: var(--zad-ink);
+	background:
+		linear-gradient(135deg, rgba(15, 143, 112, 0.12), rgba(45, 93, 145, 0.09)),
+		rgba(255, 255, 255, 0.86);
+	border: 1px solid rgba(15, 143, 112, 0.18);
 	font-weight: 900;
 }
 
@@ -1802,10 +1990,6 @@ html[dir="rtl"] .hotel-section-nav a {
 		min-height: 360px;
 	}
 
-	.hotel-section-nav {
-		top: 68px;
-	}
-
 	.support-cta {
 		align-items: start;
 	}
@@ -1918,11 +2102,17 @@ html[dir="rtl"] .hotel-section-nav a {
 	}
 
 	.checkout-items article {
-		grid-template-columns: 70px 1fr;
+		grid-template-columns: 78px minmax(0, 1fr);
 	}
 
-	.checkout-items article b {
-		grid-column: 2;
+	.checkout-item-image {
+		width: 78px;
+	}
+
+	.checkout-line-price {
+		grid-column: 1 / -1;
+		justify-self: stretch;
+		text-align: center;
 	}
 
 	.cart-row {

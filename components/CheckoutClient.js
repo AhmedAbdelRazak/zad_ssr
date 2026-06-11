@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Checkbox, Form, Input, InputNumber, message, Spin } from "antd";
 import { PayPalButtons, PayPalScriptProvider, usePayPalScriptReducer } from "@paypal/react-paypal-js";
-import { CreditCard, ShieldCheck, ShoppingBag, Trash2 } from "lucide-react";
+import { BedDouble, CalendarDays, CreditCard, Hotel, ShieldCheck, ShoppingBag, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
 	cancelPayPalPendingReservation,
@@ -780,18 +780,46 @@ export default function CheckoutClient({ website = {} }) {
 				</div>
 
 				<div className="checkout-summary premium-card">
-					<p className="eyebrow">{t("cart")}</p>
-					<h2>{t("yourCart")}</h2>
+					<div className="checkout-summary-head">
+						<span className="summary-icon">
+							<ShoppingBag size={20} />
+						</span>
+						<div>
+							<p className="eyebrow">{t("cart")}</p>
+							<h2>{t("yourCart")}</h2>
+						</div>
+						<strong dir="ltr" className="summary-count ltr-value">
+							{totalRooms} {isArabic ? "غرف" : totalRooms === 1 ? "room" : "rooms"}
+						</strong>
+					</div>
 					<div className="checkout-items">
 						{cart.map((item) => {
 							const nights = nightsBetween(item.checkIn, item.checkOut);
 							return (
 								<article key={`${item.id}-${item.checkIn}-${item.checkOut}`}>
-									{item.image ? <img src={item.image} alt={item.roomName} /> : null}
-									<div>
+									<div className="checkout-item-image">
+										{item.image ? <img src={item.image} alt={item.roomName} /> : <BedDouble size={26} />}
+									</div>
+									<div className="checkout-item-main">
 										<strong>{item.roomName}</strong>
-										<span>{item.hotelName}</span>
-										<small><bdi dir="ltr" className="ltr-value">{item.checkIn} - {item.checkOut}</bdi> · <bdi dir="ltr" className="ltr-value">{nights}</bdi> {nights > 1 ? t("nights") : t("night")}</small>
+										<span className="checkout-hotel-name">
+											<Hotel size={15} />
+											{item.hotelName}
+										</span>
+										<small>
+											<CalendarDays size={14} />
+											<bdi dir="ltr" className="ltr-value">
+												{item.checkIn} - {item.checkOut}
+											</bdi>
+											<span className="checkout-dot" aria-hidden="true" />
+											<span className="checkout-nights-value">
+												<bdi dir="ltr" className="ltr-value">
+													{nights}
+												</bdi>
+												{" "}
+												<span>{nights > 1 ? t("nights") : t("night")}</span>
+											</span>
+										</small>
 										<div className="checkout-item-actions">
 											<InputNumber
 												min={1}
@@ -805,7 +833,7 @@ export default function CheckoutClient({ website = {} }) {
 											</button>
 										</div>
 									</div>
-									<b dir="ltr" className="ltr-value">{sar(itemTotal(item))}</b>
+									<b dir="ltr" className="checkout-line-price ltr-value">{sar(itemTotal(item))}</b>
 								</article>
 							);
 						})}
@@ -815,7 +843,9 @@ export default function CheckoutClient({ website = {} }) {
 						<strong dir="ltr" className="ltr-value">{sar(totals.amount)}</strong>
 					</div>
 					<div className="checkout-payment-note">
-						<CreditCard size={17} />
+						<span className="summary-icon small">
+							<CreditCard size={16} />
+						</span>
 						<span>{isArabic ? "الدفع الآمن عبر PayPal أو البطاقة." : "Secure payment by PayPal or card."}</span>
 					</div>
 				</div>

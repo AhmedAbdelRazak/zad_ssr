@@ -587,3 +587,67 @@ Homepage Rich Text Cleanup - 2026-06-10
   - If the saved content contains paragraphs, the homepage uses the paragraph text instead of including heading text in the summary.
   - The About page still renders the saved rich HTML intentionally.
 - The homepage carousel also strips HTML from saved banner title, subtitle, and button text because those are plain-text display areas.
+
+Production Deployment Result - Zad Booking/Arabic UX Pass - 2026-06-10
+- GitHub push completed:
+  - zad_ssr main commit:
+    39d90a7 - Polish Zad booking flows and Arabic UX
+  - hotels_backend master commit:
+    7ee820d - Support Zad checkout and chat origin
+- Production server pull/build completed on ssh jannat:
+  - /home/ahmedadmin/Hotels/hotels_backend fast-forwarded to 7ee820d.
+  - /home/ahmedadmin/Hotels/zad_ssr fast-forwarded to 39d90a7.
+  - npm ci completed for zad_ssr with 0 vulnerabilities.
+  - npm run build passed for zad_ssr.
+- PM2 production restart completed:
+  - hotels-backend restarted and is online.
+  - zad-ssr restarted and is online.
+  - pm2 save completed.
+- Live public verification:
+  - https://zadhotels.jannatbooking.com/ returned HTTP/2 200.
+  - http://zadhotels.jannatbooking.com/ returned 308 to https://zadhotels.jannatbooking.com/.
+  - https://zadhotels.jannatbooking.com/favicon.ico returned HTTP/2 200.
+  - /our-hotels?lang=ar, /rooms?lang=ar, and /checkout?lang=ar returned HTTP/2 200.
+  - https://xhotelpro.com/api/paypal/token-generated returned status 200 with public clientId present and PayPal client token present.
+- Live browser verification:
+  - /?lang=ar rendered RTL with no horizontal overflow.
+  - Homepage rich-text summary had no literal <h1> or <p> tags.
+  - Contact page phone values rendered left-to-right inside Arabic layout.
+  - Mobile contact page had no horizontal overflow.
+  - Homepage hero image started zoomed in and eased toward normal scale after mount.
+
+Single Hotel Sticky Nav And Chat Polish - 2026-06-10
+- Single hotel section navigation now sticks at top: 0.
+  - The old top offset was removed so the hotel section nav becomes the primary sticky control while scrolling the hotel page.
+  - The nav received a compact frosted treatment, centered links, stronger shadow, and a metallic accent line.
+  - Overview, rooms, location, and support anchors use scroll-margin so clicked sections are not hidden behind the sticky nav.
+- D:\JannatBooking\zad_ssr\components\SupportWidget.js was polished.
+  - Floating button text changed to:
+    - English: Chat With Zad
+    - Arabic: تحدث مع زاد
+  - A pulsing green status dot was added to the chat trigger.
+  - The chat form now uses widget-scoped field styles, stronger focus states, cleaner header styling, and a mobile bottom-sheet layout.
+
+Checkout Summary And PayPal Configuration Pass - 2026-06-10
+- D:\JannatBooking\zad_ssr\components\CheckoutClient.js checkout summary was upgraded so the cart side of /checkout feels like a proper booking receipt.
+  - Added a stronger receipt header with cart icon and room count.
+  - Room rows now include a framed image/fallback icon, hotel metadata, calendar metadata, quantity controls, remove action, and a clear line-price chip.
+  - Nights count is grouped so Arabic layouts do not split the number away from the word for nights.
+  - Total and PayPal/card reassurance blocks were restyled with Zad metallic purple/green/blue styling.
+- D:\JannatBooking\zad_ssr\app\globals.css now includes responsive checkout receipt styling.
+  - Desktop keeps the checkout form and receipt aligned side by side.
+  - Mobile keeps the receipt readable with no horizontal overflow.
+  - LTR currency/date values remain explicit inside the RTL Arabic layout.
+- PayPal configuration notes:
+  - Zad checkout keeps the same backend-driven PayPal approach as Jannat checkout.
+  - The browser asks the backend /api/paypal/token-generated endpoint for the public clientId and clientToken.
+  - The Next.js app does not require PayPal secret values in its own .env file.
+  - PayPal secret values remain only in hotels_backend/.env and on the production backend server.
+- Safe verification completed without printing any secret values:
+  - Local hotels_backend/.env has PAYPAL_CLIENT_ID_LIVE, PAYPAL_SECRET_KEY_LIVE, PAYPAL_CLIENT_ID_SANDBOX, and PAYPAL_SECRET_KEY_SANDBOX populated.
+  - Production /home/ahmedadmin/Hotels/hotels_backend/.env has the same PayPal live/sandbox keys populated.
+  - https://xhotelpro.com/api/paypal/token-generated returned public clientId present, clientToken present, and env=live.
+- Verification:
+  - npm run build passed.
+  - Playwright Arabic checkout test passed with document dir=rtl and no checkout-summary overflow.
+  - Playwright verified the receipt displays SAR values left-to-right and keeps the payment reassurance text visible.
