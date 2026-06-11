@@ -651,3 +651,24 @@ Checkout Summary And PayPal Configuration Pass - 2026-06-10
   - npm run build passed.
   - Playwright Arabic checkout test passed with document dir=rtl and no checkout-summary overflow.
   - Playwright verified the receipt displays SAR values left-to-right and keeps the payment reassurance text visible.
+
+Production Deployment Result - Checkout/Support UI Pass - 2026-06-10
+- GitHub push completed for runtime commit:
+  - zad_ssr main commit:
+    01d4bfd - Polish Zad checkout and support UI
+- Production server pull/build completed on ssh jannat:
+  - /home/ahmedadmin/Hotels/zad_ssr fast-forwarded from 39d90a7 to 01d4bfd.
+  - npm ci completed with 0 vulnerabilities.
+  - npm run build passed.
+  - pm2 restarted zad-ssr and saved the process list.
+- Live public verification:
+  - https://zadhotels.jannatbooking.com/checkout?lang=ar returned HTTP 200.
+  - https://zadhotels.jannatbooking.com/single-hotel/zad-al-sad?lang=ar returned HTTP 200.
+  - https://zadhotels.jannatbooking.com/our-hotels?lang=ar returned HTTP 200.
+  - https://xhotelpro.com/api/paypal/token-generated returned public clientId present, clientToken present, and env=live.
+- Live browser verification:
+  - Arabic checkout rendered dir=rtl with checkout summary present and no summary overflow.
+  - Checkout receipt displayed SAR values left-to-right and nights text as "3 nights" equivalent in Arabic spacing.
+  - Chat trigger showed Chat With Zad in English and Arabic equivalent on Arabic pages, with the pulsing green dot present.
+  - Single hotel section nav stuck at top: 0 once the scroll reached its sticky point.
+  - zad-ssr PM2 logs showed clean Next.js startup and no error log output.
