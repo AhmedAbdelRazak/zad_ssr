@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { DEFAULT_HERO_IMAGES } from "../lib/constants";
 import { stripHtml } from "../lib/format";
@@ -54,44 +54,73 @@ export default function HeroCarousel({ website = {} }) {
 		}));
 	}, [isArabic, website]);
 	const [active, setActive] = useState(0);
+	const activeRef = useRef(0);
+	const [previousActive, setPreviousActive] = useState(null);
 	const [hasEntered, setHasEntered] = useState(false);
 	const current = slides[active] || slides[0];
+	const visibleSlideIndexes = previousActive !== null && previousActive !== active ? [previousActive, active] : [active];
 
 	useEffect(() => {
-		const timer = window.setTimeout(() => setHasEntered(true), 40);
-		return () => window.clearTimeout(timer);
-	}, []);
+		activeRef.current = active;
+	}, [active]);
 
 	useEffect(() => {
+		setHasEntered(false);
+		const frame = window.requestAnimationFrame(() => setHasEntered(true));
+		const cleanup = window.setTimeout(() => setPreviousActive(null), 950);
+		return () => {
+			window.cancelAnimationFrame(frame);
+			window.clearTimeout(cleanup);
+		};
+	}, [active]);
+
+	const changeActive = useCallback(
+		(nextIndex) => {
+			if (!slides.length) return;
+			const normalized = (nextIndex + slides.length) % slides.length;
+			if (normalized === activeRef.current) return;
+			setPreviousActive(activeRef.current);
+			activeRef.current = normalized;
+			setActive(normalized);
+		},
+		[slides.length]
+	);
+
+	useEffect(() => {
+		if (slides.length < 2) return undefined;
 		const timer = setInterval(() => {
-			setActive((value) => (value + 1) % slides.length);
-		}, 5200);
+			changeActive(activeRef.current + 1);
+		}, 6200);
 		return () => clearInterval(timer);
-	}, [slides.length]);
+	}, [changeActive, slides.length]);
 
 	const go = (direction) => {
-		setActive((value) => (value + direction + slides.length) % slides.length);
+		changeActive(activeRef.current + direction);
 	};
 
 	return (
 		<section className="hero" aria-label="ZAD Hotels featured stays" dir={isArabic ? "rtl" : "ltr"}>
-			{slides.map((slide, index) => (
+			{visibleSlideIndexes.map((index) => {
+				const slide = slides[index] || slides[0];
+				const isActive = index === active;
+				return (
 				<div
 					key={`${slide.image}-${index}`}
-					className={`hero-slide ${index === active && hasEntered ? "active" : ""}`}
+					className={`hero-slide ${isActive && hasEntered ? "active" : ""} ${!isActive ? "leaving" : ""}`}
 				>
 					<OptimizedImage
 						className="hero-slide-image"
 						src={slide.image}
 						alt=""
 						fill
-						priority={index === 0}
+						priority={index === 0 && isActive}
 						sizes="100vw"
-						quality={80}
+						quality={66}
 						aria-hidden="true"
 					/>
 				</div>
-			))}
+				);
+			})}
 			<div className="hero-overlay" />
 			<div className="container hero-content">
 				<p className="hero-kicker">ZAD Hotels</p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarDays, Search, Users } from "lucide-react";
 import { roomTypeLabel, titleCase } from "../lib/format";
@@ -25,6 +25,7 @@ const addDays = (value, days) => {
 export default function SearchPanel({ hotels = [], roomTypes = [], compact = false, defaults = {} }) {
 	const router = useRouter();
 	const { t, isArabic, language } = useZadApp();
+	const fieldId = useId();
 	const labels = {
 		heading: isArabic
 			? "\u062f\u0639\u0646\u0627 \u0646\u0633\u0627\u0639\u062f\u0643 \u0641\u064a \u0625\u064a\u062c\u0627\u062f \u0645\u0627 \u062a\u062d\u062a\u0627\u062c\u0647"
@@ -102,11 +103,12 @@ export default function SearchPanel({ hotels = [], roomTypes = [], compact = fal
 
 	return (
 		<form className={`search-panel ${compact ? "compact" : ""}`} onSubmit={submit} dir={isArabic ? "rtl" : "ltr"}>
-			<h3 className="search-panel-heading">{labels.heading}</h3>
+			<h2 className="search-panel-heading">{labels.heading}</h2>
 			<div className="search-panel-row">
 				<div className="search-field destination-field">
-					<label>{labels.city}</label>
+					<label htmlFor={`${fieldId}-destination`}>{labels.city}</label>
 					<select
+						id={`${fieldId}-destination`}
 						className="search-control native-select"
 						value={destination}
 						onChange={(event) => setDestination(event.target.value)}
@@ -120,11 +122,12 @@ export default function SearchPanel({ hotels = [], roomTypes = [], compact = fal
 					</select>
 				</div>
 				<div className="search-field">
-					<label>{labels.from}</label>
+					<label htmlFor={`${fieldId}-check-in`}>{labels.from}</label>
 					<div className="search-control date-native-control">
 						<CalendarDays size={16} />
 						<bdi dir="ltr">{checkIn}</bdi>
 						<input
+							id={`${fieldId}-check-in`}
 							type="date"
 							value={checkIn}
 							min={dateOffset(0)}
@@ -134,11 +137,12 @@ export default function SearchPanel({ hotels = [], roomTypes = [], compact = fal
 					</div>
 				</div>
 				<div className="search-field">
-					<label>{labels.to}</label>
+					<label htmlFor={`${fieldId}-check-out`}>{labels.to}</label>
 					<div className="search-control date-native-control">
 						<CalendarDays size={16} />
 						<bdi dir="ltr">{checkOut}</bdi>
 						<input
+							id={`${fieldId}-check-out`}
 							type="date"
 							value={checkOut}
 							min={addDays(checkIn, 1)}
@@ -150,11 +154,13 @@ export default function SearchPanel({ hotels = [], roomTypes = [], compact = fal
 			</div>
 			<div className="search-panel-row">
 				<div className="search-field">
-					<label>{t("roomType")}</label>
+					<label htmlFor={`${fieldId}-room-type`}>{t("roomType")}</label>
 					<select
+						id={`${fieldId}-room-type`}
 						className="search-control native-select"
 						value={roomType}
 						onChange={(event) => setRoomType(event.target.value)}
+						aria-label={t("roomType")}
 					>
 						{roomOptions.map((option) => (
 							<option key={option.value} value={option.value}>
@@ -164,10 +170,11 @@ export default function SearchPanel({ hotels = [], roomTypes = [], compact = fal
 					</select>
 				</div>
 				<div className="search-field">
-					<label>{labels.guests}</label>
+					<label htmlFor={`${fieldId}-guests`}>{labels.guests}</label>
 					<div className="search-control guest-native-control">
 						<Users size={15} />
 						<input
+							id={`${fieldId}-guests`}
 							type="number"
 							min="1"
 							max="20"

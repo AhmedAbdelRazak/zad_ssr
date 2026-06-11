@@ -11,7 +11,7 @@ import {
 	WHATSAPP_NUMBER,
 } from "../lib/constants";
 import { slugifyHotel, titleCase } from "../lib/format";
-import EmailText, { mailtoHref } from "./EmailText";
+import EmailText, { emailActionProps } from "./EmailText";
 import OptimizedImage from "./OptimizedImage";
 import { useZadApp } from "./ZadAppProvider";
 
@@ -64,7 +64,7 @@ export default function Footer({ website = {}, hotels = [] }) {
 						<MessageCircle size={18} />
 						<bdi dir="ltr" className="ltr-value">+966 54 260 8358</bdi>
 					</a>
-					<a href={mailtoHref(email)}>
+					<a {...emailActionProps(email)}>
 						<Mail size={18} />
 						<EmailText email={email} />
 					</a>

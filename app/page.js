@@ -3,6 +3,7 @@ import HomeSections from "../components/HomeSections";
 import OptimizedImage from "../components/OptimizedImage";
 import SearchPanel from "../components/SearchPanel";
 import { getFeaturedHotels, getHotels, getRoomTypes, getWebsite } from "../lib/api";
+import { maskWebsiteEmails } from "../lib/email";
 import { firstImage, stripHtml } from "../lib/format";
 
 export default async function HomePage() {
@@ -15,17 +16,18 @@ export default async function HomePage() {
 	const aboutCopy = stripHtml(website?.aboutUsEnglish)
 		.replace(/^ZAD Hotels\s+ZAD Hotels\b/i, "ZAD Hotels")
 		.slice(0, 260);
+	const clientWebsite = maskWebsiteEmails(website);
 
 	return (
 		<>
-			<HeroCarousel website={website} />
+			<HeroCarousel website={clientWebsite} />
 			<section className="search-band">
 				<div className="container">
 					<SearchPanel hotels={hotels} roomTypes={roomTypes} />
 				</div>
 			</section>
 			<HomeSections
-				website={website}
+				website={clientWebsite}
 				hotels={hotels}
 				featuredHotels={featuredHotels}
 				aboutCopy={aboutCopy}

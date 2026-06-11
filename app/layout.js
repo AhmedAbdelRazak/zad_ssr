@@ -9,6 +9,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import SupportWidget from "../components/SupportWidget";
 import { ZadAppProvider } from "../components/ZadAppProvider";
+import { maskWebsiteEmails } from "../lib/email";
 
 export const metadata = {
 	metadataBase: new URL(BRAND_URL),
@@ -45,6 +46,7 @@ export default async function RootLayout({ children }) {
 	const initialLanguage = normalizeLanguage(requestHeaders.get("x-zad-language")) || "en";
 	const initialDirection = LANGUAGES[initialLanguage]?.dir || "ltr";
 	const [website, hotels] = await Promise.all([getWebsite(), getHotels()]);
+	const clientWebsite = maskWebsiteEmails(website);
 
 	const jsonLd = [
 		{
@@ -76,10 +78,10 @@ export default async function RootLayout({ children }) {
 					dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
 				/>
 				<ZadAppProvider initialLanguage={initialLanguage}>
-					<Header website={website} />
+					<Header website={clientWebsite} />
 					<main>{children}</main>
-					<Footer website={website} hotels={hotels} />
-					<SupportWidget hotels={hotels} website={website} />
+					<Footer website={clientWebsite} hotels={hotels} />
+					<SupportWidget hotels={hotels} website={clientWebsite} />
 				</ZadAppProvider>
 			</body>
 		</html>

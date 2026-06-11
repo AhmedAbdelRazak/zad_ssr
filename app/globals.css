@@ -84,11 +84,15 @@ textarea {
 
 .eyebrow {
 	margin: 0 0 10px;
-	color: var(--zad-green);
+	color: #08745f;
 	font-size: 12px;
 	font-weight: 950;
 	letter-spacing: 0;
 	text-transform: uppercase;
+}
+
+.page-hero .eyebrow {
+	color: #32f07d;
 }
 
 .section-title {
@@ -568,6 +572,11 @@ html[dir="rtl"] .desktop-auth-state {
 }
 
 .hero-slide.active {
+	opacity: 1;
+	transform: scale(1);
+}
+
+.hero-slide.leaving {
 	opacity: 1;
 	transform: scale(1);
 }
@@ -1761,14 +1770,37 @@ html[dir="rtl"] .hotel-card-cancel {
 }
 
 .hotel-card-chat i {
+	position: relative;
 	width: 8px;
 	height: 8px;
 	border-radius: 999px;
 	background: #32f07d;
-	box-shadow:
-		0 0 0 0 rgba(50, 240, 125, 0.56),
-		0 0 10px rgba(50, 240, 125, 0.88);
-	animation: zadChatPulse 1.5s ease-out infinite;
+	box-shadow: 0 0 10px rgba(50, 240, 125, 0.88);
+}
+
+.hotel-card-chat i::after {
+	content: "";
+	position: absolute;
+	inset: -6px;
+	border-radius: inherit;
+	background: rgba(50, 240, 125, 0.32);
+	animation: zadDotPulse 1.5s ease-out infinite;
+	will-change: transform, opacity;
+}
+
+@keyframes zadDotPulse {
+	0% {
+		opacity: 0.55;
+		transform: scale(0.72);
+	}
+	72% {
+		opacity: 0;
+		transform: scale(2);
+	}
+	100% {
+		opacity: 0;
+		transform: scale(2);
+	}
 }
 
 .hotel-card-details-link {

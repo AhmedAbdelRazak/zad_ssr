@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { io } from "socket.io-client";
 import { MessageCircle, Send, X } from "lucide-react";
 import { apiUrl, closePublicSupportCase, socketBaseUrl } from "../lib/api";
 import { BRAND_NAME, CONTACT_EMAIL } from "../lib/constants";
@@ -144,12 +143,8 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 
 	useEffect(() => {
 		if (!caseId || !open) return undefined;
-		const socket = io(socketBaseUrl, {
-			transports: ["websocket", "polling"],
-			withCredentials: false,
-		});
-		socketRef.current = socket;
-		socket.emit("joinRoom", { caseId });
+		let mounted = true;
+		let socket = null;
 
 		const messageKey = (message = {}) =>
 			message?._id ||
@@ -185,19 +180,34 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 			setNotice(t("chatClosed"));
 		};
 
-		socket.on("receiveMessage", onReceiveMessage);
-		socket.on("typing", onTyping);
-		socket.on("stopTyping", onStopTyping);
-		socket.on("closeCase", onCloseCase);
+		const connectSocket = async () => {
+			const { io } = await import("socket.io-client");
+			if (!mounted) return;
+			socket = io(socketBaseUrl, {
+				transports: ["websocket", "polling"],
+				withCredentials: false,
+			});
+			socketRef.current = socket;
+			socket.emit("joinRoom", { caseId });
+			socket.on("receiveMessage", onReceiveMessage);
+			socket.on("typing", onTyping);
+			socket.on("stopTyping", onStopTyping);
+			socket.on("closeCase", onCloseCase);
+		};
+
+		connectSocket().catch((err) => console.error(err));
 
 		return () => {
+			mounted = false;
 			window.clearTimeout(typingTimerRef.current);
-			socket.emit("leaveRoom", { caseId });
-			socket.off("receiveMessage", onReceiveMessage);
-			socket.off("typing", onTyping);
-			socket.off("stopTyping", onStopTyping);
-			socket.off("closeCase", onCloseCase);
-			socket.disconnect();
+			if (socket) {
+				socket.emit("leaveRoom", { caseId });
+				socket.off("receiveMessage", onReceiveMessage);
+				socket.off("typing", onTyping);
+				socket.off("stopTyping", onStopTyping);
+				socket.off("closeCase", onCloseCase);
+				socket.disconnect();
+			}
 			socketRef.current = null;
 		};
 	}, [caseId, form.name, isArabic, open, resetCaseState, t]);
@@ -507,32 +517,37 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 				}
 
 				.support-status-dot {
+					position: relative;
 					width: 9px;
 					height: 9px;
 					border-radius: 999px;
 					background: #32f07d;
-					box-shadow:
-						0 0 0 0 rgba(50, 240, 125, 0.56),
-						0 0 12px rgba(50, 240, 125, 0.88);
-					animation: zadChatPulse 1.5s ease-out infinite;
+					box-shadow: 0 0 12px rgba(50, 240, 125, 0.88);
 					flex: 0 0 auto;
+				}
+
+				.support-status-dot::after {
+					content: "";
+					position: absolute;
+					inset: -7px;
+					border-radius: inherit;
+					background: rgba(50, 240, 125, 0.32);
+					animation: zadChatPulse 1.5s ease-out infinite;
+					will-change: transform, opacity;
 				}
 
 				@keyframes zadChatPulse {
 					0% {
-						box-shadow:
-							0 0 0 0 rgba(50, 240, 125, 0.56),
-							0 0 12px rgba(50, 240, 125, 0.88);
+						opacity: 0.55;
+						transform: scale(0.7);
 					}
 					72% {
-						box-shadow:
-							0 0 0 9px rgba(50, 240, 125, 0),
-							0 0 12px rgba(50, 240, 125, 0.78);
+						opacity: 0;
+						transform: scale(1.9);
 					}
 					100% {
-						box-shadow:
-							0 0 0 0 rgba(50, 240, 125, 0),
-							0 0 12px rgba(50, 240, 125, 0.88);
+						opacity: 0;
+						transform: scale(1.9);
 					}
 				}
 

@@ -28,7 +28,7 @@ import { DEFAULT_LOGO, OFFICIAL_EMAIL, PHONE_DISPLAY, WHATSAPP_NUMBER } from "..
 import { labelFor, navItems } from "../lib/i18n";
 import { useZadApp } from "./ZadAppProvider";
 import CartDrawer from "./CartDrawer";
-import EmailText, { mailtoHref } from "./EmailText";
+import EmailText, { emailActionProps } from "./EmailText";
 import OptimizedImage from "./OptimizedImage";
 
 const iconMap = {
@@ -84,7 +84,7 @@ export default function Header({ website = {} }) {
 			<div className="top-strip" dir={isArabic ? "rtl" : "ltr"}>
 				<div className="header-container top-strip-inner">
 					<div className="top-contact">
-						<a href={mailtoHref(email)}>
+						<a {...emailActionProps(email)}>
 							<Mail size={15} />
 							<EmailText email={email} />
 						</a>

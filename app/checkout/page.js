@@ -1,6 +1,7 @@
 import CheckoutClient from "../../components/CheckoutClient";
 import { getWebsite } from "../../lib/api";
 import { BRAND_NAME, DEFAULT_HERO_IMAGE } from "../../lib/constants";
+import { maskWebsiteEmails } from "../../lib/email";
 
 export const metadata = {
 	title: "Checkout",
@@ -10,5 +11,5 @@ export const metadata = {
 
 export default async function CheckoutPage() {
 	const website = await getWebsite();
-	return <CheckoutClient website={website} />;
+	return <CheckoutClient website={maskWebsiteEmails(website)} />;
 }

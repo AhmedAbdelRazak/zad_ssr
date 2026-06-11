@@ -9,6 +9,7 @@ import {
 	WHATSAPP_NUMBER,
 } from "../../lib/constants";
 import { firstImage } from "../../lib/format";
+import { maskEmailForClient } from "../../lib/email";
 
 export const metadata = {
 	title: "Contact",
@@ -18,7 +19,7 @@ export const metadata = {
 
 export default async function ContactPage() {
 	const website = await getWebsite();
-	const email = website?.contactEmail || CONTACT_EMAIL;
+	const email = maskEmailForClient(website?.contactEmail || CONTACT_EMAIL);
 	const phone = website?.phone || PHONE_DISPLAY;
 	const whatsapp = website?.whatsappNumber || WHATSAPP_NUMBER;
 	const image = firstImage(website?.contactUsBanner, DEFAULT_HERO_IMAGE);

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import SingleHotelView from "../../../components/SingleHotelView";
 import { getHotelBySlug, getWebsite } from "../../../lib/api";
 import { BRAND_NAME, DEFAULT_HERO_IMAGE } from "../../../lib/constants";
+import { maskWebsiteEmails } from "../../../lib/email";
 import { firstImage, titleCase } from "../../../lib/format";
 
 export async function generateMetadata({ params }) {
@@ -21,5 +22,5 @@ export default async function SingleHotelPage({ params }) {
 	const [hotel, website] = await Promise.all([getHotelBySlug(slug), getWebsite()]);
 	if (!hotel?.hotelName) notFound();
 
-	return <SingleHotelView hotel={hotel} website={website} />;
+	return <SingleHotelView hotel={hotel} website={maskWebsiteEmails(website)} />;
 }

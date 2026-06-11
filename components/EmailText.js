@@ -1,27 +1,31 @@
-export const mailtoHref = (email = "") => {
-	const value = String(email || "").trim();
-	const [local, domain] = value.split("@");
-	if (!local || !domain) return `mailto:${value}`;
-	return `mailto:${local}%40${domain}`;
-};
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { emailActionProps, mailtoHref, splitEmail } from "../lib/email";
+
+export { emailActionProps, mailtoHref };
 
 export default function EmailText({ email = "", as: Tag = "bdi", className = "ltr-value" }) {
-	const value = String(email || "").trim();
-	const [local, domain] = value.split("@");
+	const [hydrated, setHydrated] = useState(false);
+	const parts = useMemo(() => splitEmail(email), [email]);
 
-	if (!local || !domain) {
+	useEffect(() => {
+		setHydrated(true);
+	}, []);
+
+	if (!parts.local || !parts.domain) {
 		return (
 			<Tag dir="ltr" className={className}>
-				{value}
+				{parts.value}
 			</Tag>
 		);
 	}
 
 	return (
-		<Tag dir="ltr" className={className}>
-			{local}
-			<span aria-hidden="true">@</span>
-			{domain}
+		<Tag dir="ltr" className={className} suppressHydrationWarning>
+			{parts.local}
+			<span aria-hidden="true">{hydrated ? String.fromCharCode(64) : " at "}</span>
+			{parts.domain}
 		</Tag>
 	);
 }
