@@ -703,3 +703,25 @@ Search Panel And Hotel Listing Card Polish - 2026-06-10
   - No horizontal overflow was found.
   - Mobile search showed full dates: 2026-06-11 and 2026-06-14.
   - Hotel card action labels rendered correctly in English and Arabic.
+
+Production Deployment Result - Search/Card Polish - 2026-06-10
+- GitHub push completed:
+  - zad_ssr main commit:
+    abae0f5 - Polish Zad search and hotel listings
+- Production server pull/build completed on ssh jannat:
+  - /home/ahmedadmin/Hotels/zad_ssr fast-forwarded from ebad497 to abae0f5.
+  - npm ci completed with 0 vulnerabilities.
+  - npm run build passed.
+  - pm2 restarted zad-ssr and saved the process list.
+- Live public verification:
+  - https://zadhotels.jannatbooking.com/our-hotels?lang=ar returned HTTP 200.
+  - https://zadhotels.jannatbooking.com/our-hotels?lang=en returned HTTP 200.
+  - https://zadhotels.jannatbooking.com/?lang=ar returned HTTP 200.
+  - https://zadhotels.jannatbooking.com/rooms?lang=ar returned HTTP 200.
+- Live browser verification:
+  - Arabic /our-hotels rendered dir=rtl with no horizontal overflow on desktop and mobile.
+  - Search panel and hotel card were present on live desktop and mobile.
+  - Search dates rendered fully as 2026-06-11 and 2026-06-14.
+  - Hotel card used the wide listing layout on desktop and stacked layout on mobile.
+  - Hotel card chat label rendered as Chat With Zad / Arabic equivalent.
+  - zad-ssr PM2 logs showed clean Next.js startup and no error log output.
