@@ -1345,3 +1345,30 @@ Production Deployment Result - Zad PageSpeed Performance And Accessibility Pass 
   - zad-ssr PM2 status was online after restart.
   - zad-ssr out log showed Next.js ready on port 3105.
   - zad-ssr error log had no new entries in the checked tail.
+
+Zad Arabic Desktop Contact Navigation Fine Tune - 2026-06-11
+- Goal:
+  - Improve the Arabic desktop header "Contact" navigation item so it no longer looks crowded beside the auth/action buttons.
+- Files updated:
+  - D:\JannatBooking\zad_ssr\lib\i18n.js
+    - Changed the Arabic contact nav label from "اتصل بنا" to the more natural "تواصل معنا".
+  - D:\JannatBooking\zad_ssr\components\Header.js
+    - Added a stable data-nav-item attribute to desktop nav links so individual nav items can be tuned safely.
+  - D:\JannatBooking\zad_ssr\app\globals.css
+    - Widened the sticky header container on desktop only.
+    - Let the desktop nav use its natural content width instead of overflowing a squeezed grid column.
+    - Added a stable minimum width and centered alignment for the contact nav item, with RTL-specific spacing.
+- Local verification:
+  - Playwright screenshot captured before the change:
+    - D:\JannatBooking\zad_ssr\test-artifacts\arabic-header-before.png
+  - Playwright screenshots captured after the change:
+    - D:\JannatBooking\zad_ssr\test-artifacts\arabic-header-after-1497.png
+    - D:\JannatBooking\zad_ssr\test-artifacts\arabic-header-after-1440.png
+    - D:\JannatBooking\zad_ssr\test-artifacts\arabic-header-after-1366.png
+    - D:\JannatBooking\zad_ssr\test-artifacts\arabic-header-after-1280.png
+    - D:\JannatBooking\zad_ssr\test-artifacts\arabic-header-after-1100.png
+    - D:\JannatBooking\zad_ssr\test-artifacts\arabic-header-after-390.png
+  - Browser measurements confirmed:
+    - 0px contact/auth overlap at 1497, 1440, 1366, 1280, and 1100px desktop widths.
+    - 0px horizontal overflow at all checked widths, including 390px mobile.
+  - npm run build passed.

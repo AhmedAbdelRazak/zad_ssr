@@ -70,7 +70,12 @@ export default function Header({ website = {} }) {
 				const active =
 					item.href === "/" ? pathname === "/" : String(pathname || "").startsWith(item.href);
 				return (
-					<Link className={active ? "active" : ""} href={hrefWithLanguage(item.href)} key={item.href}>
+					<Link
+						className={active ? "active" : ""}
+						data-nav-item={item.icon}
+						href={hrefWithLanguage(item.href)}
+						key={item.href}
+					>
 						<Icon size={16} />
 						{labelFor(language, item.label)}
 					</Link>
