@@ -672,3 +672,34 @@ Production Deployment Result - Checkout/Support UI Pass - 2026-06-10
   - Chat trigger showed Chat With Zad in English and Arabic equivalent on Arabic pages, with the pulsing green dot present.
   - Single hotel section nav stuck at top: 0 once the scroll reached its sticky point.
   - zad-ssr PM2 logs showed clean Next.js startup and no error log output.
+
+Search Panel And Hotel Listing Card Polish - 2026-06-10
+- D:\JannatBooking\zad_ssr\components\SearchPanel.js now follows the Jannat-style search layout while preserving Zad's query contract.
+  - Two-row layout:
+    - city / from / to
+    - room type / guests / search
+  - Check-in and check-out are separate DatePicker controls, matching the Jannat interaction style.
+  - Changing check-in automatically protects checkout so it stays after check-in.
+  - URL params remain unchanged: destination, startDate, endDate, roomType, adults, children, and lang.
+  - Children remains in the query as 0 by default, but the public search UI stays simple with a single guests field.
+- D:\JannatBooking\zad_ssr\components\HotelCard.js was rebuilt as a wide Jannat-style hotel listing card.
+  - Large main image with thumbnail strip.
+  - Hotel title, location, star rating, price per night, old crossed price, amenities/features grid, distance, and room count.
+  - Action area includes free cancellation, Chat With Zad, and View hotel.
+  - Uses Zad metallic purple/blue/green styling instead of Jannat orange.
+  - Arabic/LTR numbers and currency remain readable inside RTL cards.
+- D:\JannatBooking\zad_ssr\components\HotelGrid.js now lets the global listing-card CSS own the layout instead of forcing a 3-column card grid.
+- D:\JannatBooking\zad_ssr\app\globals.css now includes:
+  - metallic Zad search panel styling
+  - desktop wide-card layout
+  - tablet action-row layout
+  - mobile stacked hotel card layout
+  - mobile date text sizing so full YYYY-MM-DD dates fit
+  - mobile action spacing so the fixed chat trigger does not cover hotel-card buttons
+- Verification:
+  - npm run build passed.
+  - Playwright checked /our-hotels?lang=ar and /our-hotels?lang=en on desktop.
+  - Playwright checked /our-hotels?lang=ar and /?lang=ar on mobile.
+  - No horizontal overflow was found.
+  - Mobile search showed full dates: 2026-06-11 and 2026-06-14.
+  - Hotel card action labels rendered correctly in English and Arabic.
