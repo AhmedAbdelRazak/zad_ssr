@@ -829,3 +829,32 @@ Production Deployment Result - PageSpeed/Image Protection Pass - 2026-06-10
   - No raw jannatbooking.com/assets image src values were found in rendered images.
   - Max optimized image width was 1920.
   - Console errors were clean.
+
+Production Deployment Result - Search CLS Refinement - 2026-06-10
+- GitHub push completed:
+  - zad_ssr main commit:
+    ce0583d - Reduce Zad search layout shift
+- Production server pull/build completed on ssh jannat:
+  - /home/ahmedadmin/Hotels/zad_ssr fast-forwarded from 7241dbd to ce0583d.
+  - npm ci completed with 0 vulnerabilities.
+  - npm run build passed.
+  - pm2 restarted zad-ssr and saved the process list.
+- What changed in this refinement:
+  - Server-side initial language/dir is now passed from the request so ?lang=ar pages render RTL/Arabic immediately.
+  - Above-fold SearchPanel controls now use stable native controls styled with Zad's existing design.
+  - The search form still preserves destination, startDate, endDate, roomType, adults, children, and lang URL params.
+- Live browser verification after deployment:
+  - /?lang=ar desktop CLS: 0
+  - /our-hotels?lang=ar mobile CLS: 0.0783
+  - /rooms?lang=ar mobile CLS: 0.003
+  - html lang/dir rendered as ar/rtl on Arabic pages.
+  - no visible broken images
+  - no horizontal overflow
+  - no raw jannatbooking.com/assets image src values
+  - max optimized image width remained 1920
+  - console errors were clean
+- Live asset/security checks still passed:
+  - /assets/janat/1756890718924.jpg returned 200 with long-cache and noimageindex headers.
+  - /_next/image?url=%2Fassets%2Fjanat%2F1756890718924.jpg&w=750&q=78 returned 200.
+  - The same optimized image endpoint with an outside Referer returned 403.
+  - zad-ssr PM2 logs showed clean Next.js startup and no error log output.
