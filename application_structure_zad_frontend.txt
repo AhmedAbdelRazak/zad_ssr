@@ -1202,3 +1202,33 @@ Zad Chat, Navbar, And Hotel Card Carousel UX Pass - 2026-06-10
     - Support topic dropdown was visible before starting a chat.
     - Mocked backend quickReply "Skip" rendered in Zad chat and sent "Skip email" through the public support-case update payload.
     - Long mocked chat with 25 messages scrolled exactly to the latest message/quick reply.
+
+Production Deployment Result - Zad Chat, Navbar, And Carousel UX Pass - 2026-06-10
+- GitHub push completed:
+  - zad_ssr main commit:
+    2509833 - Improve Zad chat and hotel cards
+- Production server pull/build completed on ssh jannat:
+  - /home/ahmedadmin/Hotels/zad_ssr fast-forwarded from ca4d940 to 2509833.
+  - npm ci completed with 0 vulnerabilities.
+  - npm run build passed.
+  - zad-ssr restarted through PM2 and stayed online.
+  - PM2 process list was saved.
+- Live HTTP verification:
+  - https://zadhotels.jannatbooking.com/our-hotels?lang=ar returned 200.
+  - Cloudflare HTTPS/HSTS headers were present.
+- Live browser verification:
+  - Playwright checked the live site without creating real support cases.
+  - /our-hotels?lang=ar at 1350px desktop:
+    - Main navigation labels had wrappedCount=0.
+    - No browser console errors.
+  - /our-hotels?lang=en at 390px mobile/touch:
+    - Swipe changed the first hotel card image.
+  - Desktop hotel-card thumbnail:
+    - Thumbnail click changed the first hotel card main image.
+  - Live support widget with mocked support-case API:
+    - Support topic dropdown appeared.
+    - Long mocked chat scrolled to the true bottom.
+    - Latest quickReply rendered as a button.
+- PM2/log health:
+  - zad-ssr PM2 status was online after restart.
+  - zad-ssr log showed Next.js ready on port 3105.

@@ -587,3 +587,16 @@ Zad Support Chat Backend Integration Notes - 2026-06-10
   - The shared hotels_backend public client routes already return and accept the fields Zad needs.
   - AI/backend logic changes for date-only follow-up hiccups are documented in:
     D:\JannatBooking\hotels_backend\application_structure_backend.txt
+
+Production Result - Zad Support Chat Frontend Integration - 2026-06-10
+- Deployed through zad_ssr commit:
+  - 2509833 - Improve Zad chat and hotel cards
+- Runtime verification:
+  - The live Zad support widget was opened on https://zadhotels.jannatbooking.com/our-hotels?lang=en.
+  - Playwright intercepted support-case API calls so no real production support case was created.
+  - The mocked backend conversation included quickReplies, and Zad rendered the latest quickReply as a button.
+  - The mocked long conversation scrolled to the latest message/quickReply.
+  - The support-topic dropdown was present before starting the mocked chat.
+- Production process:
+  - zad-ssr restarted through PM2 and stayed online.
+  - No new backend route was needed for this Zad-specific frontend integration.
