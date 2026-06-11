@@ -1,5 +1,6 @@
 "use client";
 
+import OptimizedImage from "./OptimizedImage";
 import { useZadApp } from "./ZadAppProvider";
 
 export default function PageHero({
@@ -17,9 +18,20 @@ export default function PageHero({
 	return (
 		<section
 			className={`page-hero ${hasImage ? "image-hero" : ""} ${className}`}
-			style={hasImage ? { backgroundImage: `url(${image})` } : undefined}
 			dir={isArabic ? "rtl" : "ltr"}
 		>
+			{hasImage ? (
+				<OptimizedImage
+					className="page-hero-media"
+					src={image}
+					alt=""
+					fill
+					priority
+					sizes="100vw"
+					quality={80}
+					aria-hidden="true"
+				/>
+			) : null}
 			{hasImage ? <div className="page-hero-shade" /> : null}
 			<div className="container">
 				<p className="eyebrow">{isArabic ? eyebrowAr || eyebrow : eyebrow}</p>

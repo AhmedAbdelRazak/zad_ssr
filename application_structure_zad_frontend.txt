@@ -725,3 +725,69 @@ Production Deployment Result - Search/Card Polish - 2026-06-10
   - Hotel card used the wide listing layout on desktop and stacked layout on mobile.
   - Hotel card chat label rendered as Chat With Zad / Arabic equivalent.
   - zad-ssr PM2 logs showed clean Next.js startup and no error log output.
+
+PageSpeed Image Delivery And Asset Protection Pass - 2026-06-10
+- Goal:
+  - Resolve the Google PageSpeed findings without changing the visible Zad UI/UX.
+  - Reduce oversized image delivery on hotel cards, hero/banner images, footer image, cart thumbnails, checkout thumbnails, and logos.
+  - Prevent easy third-party hotlinking/reuse of displayed images while still allowing guests to see images normally.
+- New files:
+  - D:\JannatBooking\zad_ssr\components\OptimizedImage.js
+    - Shared wrapper around next/image.
+    - Normalizes image URLs, applies consistent lazy/priority behavior, and keeps responsive sizing centralized.
+  - D:\JannatBooking\zad_ssr\lib\images.js
+    - Converts old https://jannatbooking.com/assets/... image URLs into same-origin /assets/... paths for Zad.
+    - Keeps Cloudinary/default URLs working normally.
+  - D:\JannatBooking\zad_ssr\app\assets\[...path]\route.js
+    - Same-origin Zad asset proxy for the home-server /assets files.
+    - Fetches from https://jannatbooking.com/assets/... and returns long-cache image responses.
+    - Adds noindex/noimageindex, nosniff, Referrer-Policy, and Cross-Origin-Resource-Policy headers.
+  - D:\JannatBooking\zad_ssr\components\EmailText.js
+    - Displays email addresses the same way for users while splitting the visible @ address and using %40 in mailto links.
+    - This avoids the common visible-email pattern that can cause Cloudflare email-decode injection.
+- Updated files:
+  - D:\JannatBooking\zad_ssr\next.config.mjs
+    - Enabled Next image AVIF/WebP output.
+    - Added allowed image qualities used by the app.
+    - Capped generated device image widths at 1920 instead of allowing the default 3840 candidate.
+    - Added remote image patterns for Zad assets, Jannat assets, Cloudinary defaults, and legacy Zyro defaults.
+    - Added image security headers for /_next/image and /assets.
+  - D:\JannatBooking\zad_ssr\proxy.js
+    - Includes /_next/image and /assets in the public-host protection path.
+    - Blocks cross-site image requests with an outside Referer when the Host is zadhotels.jannatbooking.com.
+    - Keeps same-origin, same-site, and normal direct guest usage working.
+  - D:\JannatBooking\zad_ssr\components\HeroCarousel.js
+  - D:\JannatBooking\zad_ssr\components\PageHero.js
+  - D:\JannatBooking\zad_ssr\components\HotelCard.js
+  - D:\JannatBooking\zad_ssr\components\RoomCard.js
+  - D:\JannatBooking\zad_ssr\components\SingleHotelView.js
+  - D:\JannatBooking\zad_ssr\components\Header.js
+  - D:\JannatBooking\zad_ssr\components\Footer.js
+  - D:\JannatBooking\zad_ssr\components\CartDrawer.js
+  - D:\JannatBooking\zad_ssr\components\CheckoutClient.js
+  - D:\JannatBooking\zad_ssr\components\ContactCards.js
+  - D:\JannatBooking\zad_ssr\app\page.js
+  - D:\JannatBooking\zad_ssr\app\globals.css
+- UI safety notes:
+  - Image containers keep the same aspect ratios and visual sizing.
+  - Homepage, hotel listing, rooms listing, contact page, cart, checkout, footer, and single-hotel gallery keep the same design structure.
+  - Arabic mobile search room-type row was slightly adjusted so long room-type labels no longer collide with the guest field.
+- Important limitation:
+  - Public browser images can never be made impossible to capture or screenshot.
+  - This pass protects against normal cross-site hotlinking and search image indexing, and hides old Jannat asset source URLs from rendered image src values.
+- Local verification:
+  - npm run build passed.
+  - /assets/janat/1756890718924.jpg returned 200 with long-cache and noimageindex headers.
+  - /_next/image for the same asset returned 200.
+  - Public-host hotlink simulation with outside Referer returned 403.
+  - Playwright checked:
+    - /?lang=ar desktop
+    - /our-hotels?lang=ar mobile
+    - /rooms?lang=ar mobile
+    - /contact?lang=en desktop
+  - Browser audit results:
+    - no visible broken images
+    - no horizontal overflow
+    - no raw jannatbooking.com/assets image src values
+    - max optimizer candidate width was 1920
+    - console errors were clean

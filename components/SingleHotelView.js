@@ -4,6 +4,7 @@ import { BedDouble, CalendarDays, MapPin, MessageCircle, Navigation, ShieldCheck
 import RoomCard from "./RoomCard";
 import { DEFAULT_HERO_IMAGE, WHATSAPP_NUMBER } from "../lib/constants";
 import { firstImage, hotelLocation, stripHtml, titleCase, walkingDistance } from "../lib/format";
+import OptimizedImage from "./OptimizedImage";
 import { useZadApp } from "./ZadAppProvider";
 
 const compactPhotos = (hotel = {}) => {
@@ -85,9 +86,25 @@ export default function SingleHotelView({ hotel = {}, website = {} }) {
 						</div>
 					</div>
 					<div className="hotel-gallery" aria-label={`${hotelName} photos`}>
-						<img className="gallery-main" src={heroImage} alt={hotelName} />
+						<div className="gallery-image gallery-main">
+							<OptimizedImage
+								src={heroImage}
+								alt={hotelName}
+								fill
+								priority
+								sizes="(max-width: 760px) calc(100vw - 32px), 48vw"
+							/>
+						</div>
 						{photos.slice(1, 5).map((photo, index) => (
-							<img key={`${photo}-${index}`} src={photo} alt={`${hotelName} ${index + 2}`} loading="lazy" />
+							<div className="gallery-image" key={`${photo}-${index}`}>
+								<OptimizedImage
+									src={photo}
+									alt={`${hotelName} ${index + 2}`}
+									fill
+									sizes="(max-width: 760px) 45vw, 220px"
+									quality={72}
+								/>
+							</div>
 						))}
 					</div>
 				</div>

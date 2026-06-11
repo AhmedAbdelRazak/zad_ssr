@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { DEFAULT_HERO_IMAGES } from "../lib/constants";
 import { stripHtml } from "../lib/format";
+import OptimizedImage from "./OptimizedImage";
 import { useZadApp } from "./ZadAppProvider";
 
 export default function HeroCarousel({ website = {} }) {
@@ -78,8 +79,18 @@ export default function HeroCarousel({ website = {} }) {
 				<div
 					key={`${slide.image}-${index}`}
 					className={`hero-slide ${index === active && hasEntered ? "active" : ""}`}
-					style={{ backgroundImage: `url(${slide.image})` }}
-				/>
+				>
+					<OptimizedImage
+						className="hero-slide-image"
+						src={slide.image}
+						alt=""
+						fill
+						priority={index === 0}
+						sizes="100vw"
+						quality={80}
+						aria-hidden="true"
+					/>
+				</div>
 			))}
 			<div className="hero-overlay" />
 			<div className="container hero-content">

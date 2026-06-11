@@ -11,6 +11,8 @@ import {
 	WHATSAPP_NUMBER,
 } from "../lib/constants";
 import { slugifyHotel, titleCase } from "../lib/format";
+import EmailText, { mailtoHref } from "./EmailText";
+import OptimizedImage from "./OptimizedImage";
 import { useZadApp } from "./ZadAppProvider";
 
 export default function Footer({ website = {}, hotels = [] }) {
@@ -23,7 +25,16 @@ export default function Footer({ website = {}, hotels = [] }) {
 	const email = website?.officialEmail || website?.contactEmail || CONTACT_EMAIL;
 
 	return (
-		<footer className="footer" style={{ backgroundImage: `url(${footerImage})` }} dir={isArabic ? "rtl" : "ltr"}>
+		<footer className="footer" dir={isArabic ? "rtl" : "ltr"}>
+			<OptimizedImage
+				className="footer-bg"
+				src={footerImage}
+				alt=""
+				fill
+				sizes="100vw"
+				quality={72}
+				aria-hidden="true"
+			/>
 			<div className="footer-overlay" />
 			<div className="container footer-grid">
 				<div className="footer-column footer-brand">
@@ -40,7 +51,7 @@ export default function Footer({ website = {}, hotels = [] }) {
 				</div>
 
 				<div className="footer-logo-wrap">
-					<img src={logo} alt={BRAND_NAME} />
+					<OptimizedImage src={logo} alt={BRAND_NAME} width={210} height={210} sizes="(max-width: 760px) 52vw, 210px" />
 				</div>
 
 				<div className="footer-column footer-service">
@@ -53,9 +64,9 @@ export default function Footer({ website = {}, hotels = [] }) {
 						<MessageCircle size={18} />
 						<bdi dir="ltr" className="ltr-value">+966 54 260 8358</bdi>
 					</a>
-					<a href={`mailto:${email}`}>
+					<a href={mailtoHref(email)}>
 						<Mail size={18} />
-						<bdi dir="ltr" className="ltr-value">{email}</bdi>
+						<EmailText email={email} />
 					</a>
 					<div className="newsletter">
 						<strong>{t("luxury")}</strong>

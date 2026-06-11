@@ -24,6 +24,7 @@ import {
 	transformCartToPickedRoomsType,
 } from "../lib/booking";
 import { sar } from "../lib/format";
+import OptimizedImage from "./OptimizedImage";
 import { useZadApp } from "./ZadAppProvider";
 
 const normalizePhoneInput = (value = "") =>
@@ -798,7 +799,17 @@ export default function CheckoutClient({ website = {} }) {
 							return (
 								<article key={`${item.id}-${item.checkIn}-${item.checkOut}`}>
 									<div className="checkout-item-image">
-										{item.image ? <img src={item.image} alt={item.roomName} /> : <BedDouble size={26} />}
+										{item.image ? (
+											<OptimizedImage
+												src={item.image}
+												alt={item.roomName}
+												fill
+												sizes="96px"
+												quality={68}
+											/>
+										) : (
+											<BedDouble size={26} />
+										)}
 									</div>
 									<div className="checkout-item-main">
 										<strong>{item.roomName}</strong>

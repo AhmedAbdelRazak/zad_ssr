@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { DEFAULT_HERO_IMAGE } from "../lib/constants";
 import { firstImage, hotelLocation, sar, slugifyHotel, titleCase, walkingDistance } from "../lib/format";
+import OptimizedImage from "./OptimizedImage";
 import { useZadApp } from "./ZadAppProvider";
 
 const minBasePrice = (hotel = {}) => {
@@ -117,7 +118,13 @@ export default function HotelCard({ hotel = {}, priority = false }) {
 		<article className="hotel-card premium-card" dir={isArabic ? "rtl" : "ltr"}>
 			<div className="hotel-card-gallery">
 				<Link href={hrefWithLanguage(`/single-hotel/${slug}`)} className="hotel-card-main-image" aria-label={`View ${hotel.hotelName}`}>
-					<img src={image} alt={displayName || "ZAD hotel"} loading={priority ? "eager" : "lazy"} />
+					<OptimizedImage
+						src={image}
+						alt={displayName || "ZAD hotel"}
+						fill
+						priority={priority}
+						sizes="(max-width: 760px) calc(100vw - 56px), (max-width: 1100px) 42vw, 370px"
+					/>
 					<span className="hotel-card-image-dots" aria-hidden="true">
 						{images.slice(0, 5).map((item, index) => (
 							<i className={index === 0 ? "active" : ""} key={`${item}-${index}`} />
@@ -126,7 +133,15 @@ export default function HotelCard({ hotel = {}, priority = false }) {
 				</Link>
 				<div className="hotel-card-thumbs" aria-hidden="true">
 					{images.slice(0, 4).map((item, index) => (
-						<img src={item} alt="" loading="lazy" key={`${item}-thumb-${index}`} />
+						<OptimizedImage
+							src={item}
+							alt=""
+							width={120}
+							height={74}
+							sizes="90px"
+							quality={66}
+							key={`${item}-thumb-${index}`}
+						/>
 					))}
 				</div>
 			</div>

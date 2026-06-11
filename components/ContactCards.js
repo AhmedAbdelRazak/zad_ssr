@@ -1,16 +1,17 @@
 "use client";
 
 import { Mail, MessageCircle, Phone } from "lucide-react";
+import EmailText, { mailtoHref } from "./EmailText";
 import { useZadApp } from "./ZadAppProvider";
 
 export default function ContactCards({ email, phone, whatsapp }) {
 	const { t, isArabic } = useZadApp();
 	return (
 		<div className="container contact-grid" dir={isArabic ? "rtl" : "ltr"}>
-			<a className="contact-card premium-card" href={`mailto:${email}`}>
+			<a className="contact-card premium-card" href={mailtoHref(email)}>
 				<Mail size={24} />
 				<span>{t("emailAddress")}</span>
-				<strong dir="ltr" className="ltr-value">{email}</strong>
+				<EmailText email={email} as="strong" />
 			</a>
 			<a className="contact-card premium-card" href={`tel:${phone.replace(/[^\d+]/g, "")}`}>
 				<Phone size={24} />

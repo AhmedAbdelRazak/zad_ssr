@@ -490,3 +490,24 @@ Zad Checkout, PayPal, And Support Origin Backend Notes - 2026-06-10
     - controllers/paypal_reservation.js
     - controllers/zadcontroller.js
     - models/supportcase.js
+
+Zad Asset Delivery And Image Protection Notes - 2026-06-10
+- The home-server asset documentation used for this pass:
+  - D:\HomeServer\Ahmed_Home_Server_Cloudinary_Local_Assets_Automation_Documentation.docx
+- Relevant home-server asset behavior from that document:
+  - Static files live under:
+    /var/www/jannat-assets
+  - Public apps already use /assets/... as the stable home-server asset path.
+  - Existing Nginx local asset serving uses long cache headers and no directory listing.
+  - Cloudinary fallback metadata is preserved in MongoDB and should not be blindly deleted.
+- Zad SSR now has a same-origin /assets/[...path] route in the frontend app.
+  - This keeps displayed hotel images on a Zad URL path while still reading the existing home-server /assets files.
+  - Old database image URLs that point at https://jannatbooking.com/assets/... are normalized in the frontend to /assets/....
+  - No backend database migration was required for this PageSpeed pass.
+- Security behavior:
+  - /assets and /_next/image responses include noindex/noimageindex and same-origin resource policy headers.
+  - Zad proxy blocks normal cross-site hotlink attempts for /assets and /_next/image when the public host is zadhotels.jannatbooking.com.
+  - This reduces image reuse and hotlinking, but it cannot prevent screenshots or determined browser downloads.
+- Backend impact:
+  - hotels_backend code was not changed for this pass.
+  - Existing hotel image URLs and Cloudinary fallback fields remain untouched.

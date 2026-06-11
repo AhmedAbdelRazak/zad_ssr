@@ -24,6 +24,8 @@ import { DEFAULT_LOGO, OFFICIAL_EMAIL, PHONE_DISPLAY, WHATSAPP_NUMBER } from "..
 import { labelFor, navItems } from "../lib/i18n";
 import { useZadApp } from "./ZadAppProvider";
 import CartDrawer from "./CartDrawer";
+import EmailText, { mailtoHref } from "./EmailText";
+import OptimizedImage from "./OptimizedImage";
 
 const iconMap = {
 	home: Home,
@@ -66,9 +68,9 @@ export default function Header({ website = {} }) {
 			<div className="top-strip" dir={isArabic ? "rtl" : "ltr"}>
 				<div className="header-container top-strip-inner">
 					<div className="top-contact">
-						<a href={`mailto:${email}`}>
+						<a href={mailtoHref(email)}>
 							<Mail size={15} />
-							<bdi dir="ltr" className="ltr-value">{email}</bdi>
+							<EmailText email={email} />
 						</a>
 						<a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer">
 							<MessageCircle size={16} />
@@ -92,7 +94,7 @@ export default function Header({ website = {} }) {
 				<div className="main-strip">
 				<div className="header-container main-strip-inner">
 					<Link className="logo" href={hrefWithLanguage("/")} aria-label="ZAD Hotels home">
-						<img src={logo} alt="ZAD Hotels" />
+						<OptimizedImage src={logo} alt="ZAD Hotels" width={132} height={58} sizes="132px" priority />
 					</Link>
 					{menu}
 					<div className="header-actions">
@@ -128,7 +130,7 @@ export default function Header({ website = {} }) {
 				className="zad-mobile-drawer"
 			>
 				<div className="mobile-menu-content">
-					<img src={logo} alt="ZAD Hotels" />
+					<OptimizedImage src={logo} alt="ZAD Hotels" width={132} height={58} sizes="132px" />
 					{navItems.map((item) => {
 						const Icon = iconMap[item.icon] || Home;
 						return (

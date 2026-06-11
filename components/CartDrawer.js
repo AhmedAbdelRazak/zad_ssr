@@ -5,6 +5,7 @@ import { Badge, Button, Divider, Drawer, Empty, InputNumber } from "antd";
 import { BedDouble, CalendarDays, ShoppingBag, Trash2 } from "lucide-react";
 import { useZadApp } from "./ZadAppProvider";
 import { sar } from "../lib/format";
+import OptimizedImage from "./OptimizedImage";
 
 export default function CartDrawer() {
 	const {
@@ -40,7 +41,17 @@ export default function CartDrawer() {
 							const nights = nightsBetween(item.checkIn, item.checkOut);
 							return (
 								<article className="cart-row" key={`${item.id}-${item.checkIn}-${item.checkOut}`}>
-									{item.image ? <img src={item.image} alt={item.roomName} /> : null}
+									{item.image ? (
+										<OptimizedImage
+											className="cart-row-image"
+											src={item.image}
+											alt={item.roomName}
+											width={92}
+											height={92}
+											sizes="92px"
+											quality={68}
+										/>
+									) : null}
 									<div className="cart-row-content">
 										<strong>{item.roomName}</strong>
 										<span>{item.hotelName}</span>

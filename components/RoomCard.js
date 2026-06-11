@@ -6,6 +6,7 @@ import { BedDouble, MessageCircle, ShoppingBag } from "lucide-react";
 import { buildRoomPricing } from "../lib/booking";
 import { WHATSAPP_NUMBER } from "../lib/constants";
 import { firstImage, roomTypeLabel, sar, slugifyHotel, titleCase } from "../lib/format";
+import OptimizedImage from "./OptimizedImage";
 import { useZadApp } from "./ZadAppProvider";
 
 const dateOffset = (days) => {
@@ -78,7 +79,16 @@ export default function RoomCard({
 
 	return (
 		<article className="room-card premium-card" dir={isArabic ? "rtl" : "ltr"}>
-			{image ? <img src={image} alt={`${roomName} at ${hotelName}`} loading="lazy" /> : null}
+			{image ? (
+				<div className="room-card-image">
+					<OptimizedImage
+						src={image}
+						alt={`${roomName} at ${hotelName}`}
+						fill
+						sizes="(max-width: 760px) calc(100vw - 56px), 230px"
+					/>
+				</div>
+			) : null}
 			<div className="room-content">
 				<span className="hotel-kicker">{hotelName}</span>
 				<h3>{roomName}</h3>

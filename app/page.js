@@ -1,5 +1,6 @@
 import HeroCarousel from "../components/HeroCarousel";
 import HomeSections from "../components/HomeSections";
+import OptimizedImage from "../components/OptimizedImage";
 import SearchPanel from "../components/SearchPanel";
 import { getFeaturedHotels, getHotels, getRoomTypes, getWebsite } from "../lib/api";
 import { firstImage, stripHtml } from "../lib/format";
@@ -31,7 +32,14 @@ export default async function HomePage() {
 			/>
 			{website?.homeSecondBanner?.url ? (
 				<section className="wide-image">
-					<img src={firstImage(website.homeSecondBanner)} alt="ZAD Hotels feature" />
+					<div className="wide-image-media">
+						<OptimizedImage
+							src={firstImage(website.homeSecondBanner)}
+							alt="ZAD Hotels feature"
+							fill
+							sizes="(max-width: 760px) calc(100vw - 24px), 1180px"
+						/>
+					</div>
 				</section>
 			) : null}
 		</>
