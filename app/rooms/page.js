@@ -47,14 +47,18 @@ export default async function RoomsPage({ searchParams }) {
 				titleAr="ابحث عن الغرفة المناسبة لتواريخك"
 				copyAr="ابحث في فنادق زاد حسب الوجهة والتواريخ ونوع الغرفة وعدد الضيوف."
 			/>
-			<section className="section">
-				<div className="container page-stack">
+			<section className="search-band page-search-band">
+				<div className="container">
 					<SearchPanel
 						hotels={hotels}
 						roomTypes={roomTypes}
 						compact
 						defaults={{ destination, startDate, endDate, roomType, adults, children }}
 					/>
+				</div>
+			</section>
+			<section className="section">
+				<div className="container page-stack">
 					<RoomsResultsHead
 						count={roomRows.length}
 						destination={destination}
@@ -71,6 +75,8 @@ export default async function RoomsPage({ searchParams }) {
 									whatsappNumber={website?.whatsappNumber}
 									checkIn={startDate}
 									checkOut={endDate}
+									adults={adults}
+									children={children || "0"}
 								/>
 							))}
 						</div>

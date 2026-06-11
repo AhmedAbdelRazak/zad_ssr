@@ -10,12 +10,14 @@
 	},
 	"dependencies": {
 		"@ant-design/icons": "^6.2.5",
+		"@paypal/react-paypal-js": "^10.0.0",
 		"antd": "^6.4.3",
 		"dayjs": "^1.11.21",
 		"lucide-react": "^1.17.0",
 		"next": "^16.2.9",
 		"react": "^19.2.7",
-		"react-dom": "^19.2.7"
+		"react-dom": "^19.2.7",
+		"socket.io-client": "^4.8.3"
 	},
 	"overrides": {
 		"postcss": "^8.5.15"

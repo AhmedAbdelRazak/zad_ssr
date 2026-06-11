@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { io } from "socket.io-client";
 import { MessageCircle, Send, X } from "lucide-react";
-import { apiUrl } from "../lib/api";
+import { apiUrl, socketBaseUrl } from "../lib/api";
 import { BRAND_NAME, CONTACT_EMAIL } from "../lib/constants";
 import { titleCase } from "../lib/format";
 import { useZadApp } from "./ZadAppProvider";
@@ -26,6 +27,9 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 	const [reply, setReply] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
+	const [typingStatus, setTypingStatus] = useState("");
+	const socketRef = useRef(null);
+	const typingTimerRef = useRef(null);
 	const languageName = isArabic ? "Arabic" : "English";
 	const languageCode = isArabic ? "ar" : "en";
 	const selectedHotel = useMemo(
@@ -54,6 +58,58 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 			clearInterval(timer);
 		};
 	}, [caseId, open]);
+
+	useEffect(() => {
+		if (!caseId || !open) return undefined;
+		const socket = io(socketBaseUrl, {
+			transports: ["websocket", "polling"],
+			withCredentials: false,
+		});
+		socketRef.current = socket;
+		socket.emit("joinRoom", { caseId });
+
+		const messageKey = (message = {}) =>
+			message?._id ||
+			`${message?.date || ""}:${message?.messageBy?.customerEmail || ""}:${message?.message || ""}`;
+		const onReceiveMessage = (message = {}) => {
+			if (message.caseId && String(message.caseId) !== String(caseId)) return;
+			setTypingStatus("");
+			setMessages((current) => {
+				const key = messageKey(message);
+				if (current.some((row) => messageKey(row) === key)) return current;
+				return [...current, message];
+			});
+		};
+		const onTyping = (data = {}) => {
+			if (data.caseId && String(data.caseId) !== String(caseId)) return;
+			if (data.name && data.name === form.name) return;
+			setTypingStatus(
+				isArabic
+					? `${data.name || "Zad Hotels"} يكتب الآن...`
+					: `${data.name || "Zad Hotels"} is typing...`
+			);
+			window.clearTimeout(typingTimerRef.current);
+			typingTimerRef.current = window.setTimeout(() => setTypingStatus(""), 4500);
+		};
+		const onStopTyping = (data = {}) => {
+			if (data.caseId && String(data.caseId) !== String(caseId)) return;
+			setTypingStatus("");
+		};
+
+		socket.on("receiveMessage", onReceiveMessage);
+		socket.on("typing", onTyping);
+		socket.on("stopTyping", onStopTyping);
+
+		return () => {
+			window.clearTimeout(typingTimerRef.current);
+			socket.emit("leaveRoom", { caseId });
+			socket.off("receiveMessage", onReceiveMessage);
+			socket.off("typing", onTyping);
+			socket.off("stopTyping", onStopTyping);
+			socket.disconnect();
+			socketRef.current = null;
+		};
+	}, [caseId, form.name, isArabic, open]);
 
 	const updateForm = (key, value) => setForm((current) => ({ ...current, [key]: value }));
 
@@ -89,6 +145,9 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 				ownerId,
 				preferredLanguage: languageName,
 				preferredLanguageCode: languageCode,
+				sourceWebsite: "zad_ssr",
+				sourcePage: "zadhotels_support_widget",
+				sourceUrl: typeof window !== "undefined" ? window.location.href : "",
 			};
 			const res = await fetch(apiUrl("/support-cases/new"), {
 				method: "POST",
@@ -103,6 +162,20 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 			setError(err.message || "Unable to start chat.");
 		} finally {
 			setBusy(false);
+		}
+	};
+
+	const emitTyping = (value) => {
+		const socket = socketRef.current;
+		if (!socket || !caseId) return;
+		if (value) {
+			socket.emit("typing", { name: form.name || "Guest", caseId });
+			window.clearTimeout(typingTimerRef.current);
+			typingTimerRef.current = window.setTimeout(() => {
+				socket.emit("stopTyping", { name: form.name || "Guest", caseId });
+			}, 1600);
+		} else {
+			socket.emit("stopTyping", { name: form.name || "Guest", caseId });
 		}
 	};
 
@@ -131,6 +204,7 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 			if (!res.ok || data?.error) throw new Error(data?.error || "Message failed.");
 			setMessages(Array.isArray(data.conversation) ? data.conversation : []);
 			setReply("");
+			emitTyping("");
 		} catch (err) {
 			setError(err.message || "Message failed.");
 		} finally {
@@ -172,9 +246,17 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 										</div>
 									);
 								})}
+								{typingStatus ? <div className="typing-line">{typingStatus}</div> : null}
 							</div>
 							<form className="reply-form" onSubmit={sendReply}>
-								<input value={reply} onChange={(event) => setReply(event.target.value)} placeholder={t("typeMessage")} />
+								<input
+									value={reply}
+									onChange={(event) => {
+										setReply(event.target.value);
+										emitTyping(event.target.value);
+									}}
+									placeholder={t("typeMessage")}
+								/>
 								<button type="submit" disabled={busy || !reply.trim()} aria-label="Send message">
 									<Send size={18} />
 								</button>
@@ -188,7 +270,7 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 							</div>
 							<div className="field">
 								<label>{t("contact")}</label>
-								<input value={form.contact} onChange={(event) => updateForm("contact", event.target.value)} />
+								<input dir="ltr" value={form.contact} onChange={(event) => updateForm("contact", event.target.value)} />
 							</div>
 							<div className="field">
 								<label>{t("hotel")}</label>
@@ -329,6 +411,17 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 					white-space: pre-wrap;
 					line-height: 1.45;
 					font-size: 14px;
+				}
+
+				.typing-line {
+					width: fit-content;
+					border-radius: 999px;
+					padding: 7px 10px;
+					color: #536173;
+					background: #fff;
+					border: 1px solid var(--zad-border);
+					font-size: 12px;
+					font-weight: 900;
 				}
 
 				.reply-form {

@@ -4,14 +4,24 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import HotelGrid from "./HotelGrid";
 import { BRAND_NAME } from "../lib/constants";
+import { stripHtml } from "../lib/format";
 import { useZadApp } from "./ZadAppProvider";
 
+const plainSummary = (value = "") => {
+	const text = String(value || "");
+	const paragraph = text.match(/<p[^>]*>([\s\S]*?)<\/p>/i)?.[1];
+	return stripHtml(paragraph || text);
+};
+
 export default function HomeSections({ website = {}, hotels = [], featuredHotels = [], aboutCopy = "" }) {
-	const { t, isArabic } = useZadApp();
+	const { t, isArabic, hrefWithLanguage } = useZadApp();
 	const copy =
-		(isArabic && website?.aboutUsArabic) ||
-		(isArabic ? t("introCopy") : aboutCopy) ||
-		t("introCopy") ||
+		plainSummary(
+			(isArabic && website?.aboutUsArabic) ||
+				(isArabic ? t("introCopy") : aboutCopy) ||
+				t("introCopy") ||
+				`${BRAND_NAME} brings together a carefully selected hotel collection.`
+		) ||
 		`${BRAND_NAME} brings together a carefully selected hotel collection.`;
 
 	return (
@@ -45,7 +55,7 @@ export default function HomeSections({ website = {}, hotels = [], featuredHotels
 							<p className="eyebrow">{t("featuredHotels")}</p>
 							<h2 className="section-title">{t("exploreZad")}</h2>
 						</div>
-						<Link className="view-all" href="/our-hotels">
+						<Link className="view-all" href={hrefWithLanguage("/our-hotels")}>
 							{t("allHotels")} <ArrowRight size={17} />
 						</Link>
 					</div>

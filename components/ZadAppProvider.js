@@ -2,7 +2,10 @@
 
 import { ConfigProvider } from "antd";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
+import { cartRoomsCount, cartTotal, defaultGuestPaymentAcceptance, safeNumber } from "../lib/booking";
 import { LANGUAGES, getText } from "../lib/i18n";
+import { addLanguageToHref, languageFromSearch, normalizeLanguage } from "../lib/language";
 
 const ZadAppContext = createContext(null);
 const LANGUAGE_KEY = "zadHotelsLanguage";
@@ -19,19 +22,39 @@ const normalizeItem = (item = {}) => {
 	const checkOut = item.checkOut || dateOffset(4);
 	const amount = Math.max(1, Number(item.amount || 1));
 	const price = Math.max(0, Number(item.price || 0));
+	const pricingByDay = Array.isArray(item.pricingByDay) ? item.pricingByDay : [];
+	const pricingByDayWithCommission = Array.isArray(item.pricingByDayWithCommission)
+		? item.pricingByDayWithCommission
+		: pricingByDay;
 	return {
 		id: String(item.id || `${item.hotelId || "hotel"}-${item.roomType || "room"}`),
 		hotelId: item.hotelId || "",
 		hotelName: item.hotelName || "ZAD Hotel",
 		hotelSlug: item.hotelSlug || "",
+		belongsTo: item.belongsTo || item.ownerId || "",
+		hotelAddress: item.hotelAddress || "",
+		hotelCity: item.hotelCity || "",
+		hotelState: item.hotelState || "",
+		hotelCountry: item.hotelCountry || "",
+		guestPaymentAcceptance: item.guestPaymentAcceptance || defaultGuestPaymentAcceptance,
 		roomId: item.roomId || "",
 		roomType: item.roomType || "",
 		roomName: item.roomName || "Room",
+		roomNameOtherLanguage: item.roomNameOtherLanguage || "",
+		roomColor: item.roomColor || "",
+		defaultCost: safeNumber(item.defaultCost, price),
+		roomCommission: safeNumber(item.roomCommission, 10),
+		bedsCount: safeNumber(item.bedsCount, 0),
+		adults: Math.max(1, safeNumber(item.adults, 1)),
+		children: Math.max(0, safeNumber(item.children, 0)),
+		photos: Array.isArray(item.photos) ? item.photos : item.image ? [{ url: item.image }] : [],
 		image: item.image || "",
 		price,
 		amount,
 		checkIn,
 		checkOut,
+		pricingByDay,
+		pricingByDayWithCommission,
 	};
 };
 
@@ -43,15 +66,21 @@ const nightsBetween = (start, end) => {
 };
 
 export function ZadAppProvider({ children }) {
-	const [language, setLanguage] = useState("en");
+	const pathname = usePathname();
+	const [language, setLanguageState] = useState("en");
+	const [languageReady, setLanguageReady] = useState(false);
+	const [syncLanguageUrl, setSyncLanguageUrl] = useState(false);
 	const [cart, setCart] = useState([]);
 	const [cartOpen, setCartOpen] = useState(false);
 
 	useEffect(() => {
+		const urlLanguage = languageFromSearch(window.location.search);
 		const storedLanguage = window.localStorage.getItem(LANGUAGE_KEY);
-		if (storedLanguage === "ar" || storedLanguage === "en") {
-			setLanguage(storedLanguage);
-		}
+		const savedLanguage = normalizeLanguage(storedLanguage);
+		const initialLanguage = urlLanguage || savedLanguage || "en";
+		setLanguageState(initialLanguage);
+		setSyncLanguageUrl(Boolean(urlLanguage || savedLanguage === "ar"));
+		setLanguageReady(true);
 		try {
 			const storedCart = JSON.parse(window.localStorage.getItem(CART_KEY) || "[]");
 			if (Array.isArray(storedCart)) setCart(storedCart.map(normalizeItem));
@@ -61,18 +90,52 @@ export function ZadAppProvider({ children }) {
 	}, []);
 
 	useEffect(() => {
+		if (!languageReady) return;
 		window.localStorage.setItem(LANGUAGE_KEY, language);
 		document.documentElement.lang = language;
 		document.documentElement.dir = LANGUAGES[language]?.dir || "ltr";
-	}, [language]);
+		if (syncLanguageUrl) {
+			const currentHref = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+			const nextHref = addLanguageToHref(currentHref, language);
+			if (nextHref !== currentHref) {
+				window.history.replaceState(window.history.state, "", nextHref);
+			}
+		}
+	}, [language, languageReady, pathname, syncLanguageUrl]);
+
+	useEffect(() => {
+		const onPopState = () => {
+			const urlLanguage = languageFromSearch(window.location.search);
+			if (urlLanguage) {
+				setSyncLanguageUrl(true);
+				setLanguageState(urlLanguage);
+			}
+		};
+		window.addEventListener("popstate", onPopState);
+		return () => window.removeEventListener("popstate", onPopState);
+	}, []);
 
 	useEffect(() => {
 		window.localStorage.setItem(CART_KEY, JSON.stringify(cart));
 	}, [cart]);
 
+	const setLanguage = useCallback((nextLanguage) => {
+		setSyncLanguageUrl(true);
+		setLanguageState((current) => {
+			const next =
+				typeof nextLanguage === "function" ? nextLanguage(current) : nextLanguage;
+			return normalizeLanguage(next) || current;
+		});
+	}, []);
+
 	const toggleLanguage = useCallback(() => {
 		setLanguage((current) => (current === "ar" ? "en" : "ar"));
-	}, []);
+	}, [setLanguage]);
+
+	const hrefWithLanguage = useCallback(
+		(href) => addLanguageToHref(href, language),
+		[language]
+	);
 
 	const addToCart = useCallback((item) => {
 		const nextItem = normalizeItem(item);
@@ -106,18 +169,14 @@ export function ZadAppProvider({ children }) {
 	const clearCart = useCallback(() => setCart([]), []);
 
 	const totals = useMemo(() => {
-		return cart.reduce(
-			(acc, item) => {
-				const nights = nightsBetween(item.checkIn, item.checkOut);
-				const quantity = Number(item.amount || 1);
-				const lineTotal = Number(item.price || 0) * quantity * nights;
-				acc.rooms += quantity;
-				acc.nights = Math.max(acc.nights, nights);
-				acc.amount += lineTotal;
-				return acc;
-			},
-			{ rooms: 0, nights: 0, amount: 0 }
-		);
+		return {
+			rooms: cartRoomsCount(cart),
+			nights: cart.reduce(
+				(max, item) => Math.max(max, nightsBetween(item.checkIn, item.checkOut)),
+				0
+			),
+			amount: cartTotal(cart),
+		};
 	}, [cart]);
 
 	const value = useMemo(
@@ -128,6 +187,7 @@ export function ZadAppProvider({ children }) {
 			t: (key) => getText(language, key),
 			toggleLanguage,
 			setLanguage,
+			hrefWithLanguage,
 			cart,
 			totals,
 			cartOpen,
@@ -143,8 +203,10 @@ export function ZadAppProvider({ children }) {
 			cart,
 			cartOpen,
 			clearCart,
+			hrefWithLanguage,
 			language,
 			removeCartItem,
+			setLanguage,
 			toggleLanguage,
 			totals,
 			updateCartItem,

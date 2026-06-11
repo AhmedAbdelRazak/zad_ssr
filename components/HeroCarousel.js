@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { DEFAULT_HERO_IMAGES } from "../lib/constants";
+import { stripHtml } from "../lib/format";
 import { useZadApp } from "./ZadAppProvider";
 
 export default function HeroCarousel({ website = {} }) {
-	const { isArabic } = useZadApp();
+	const { isArabic, hrefWithLanguage } = useZadApp();
 	const slides = useMemo(() => {
 		const source =
 			Array.isArray(website?.homeMainBanners) && website.homeMainBanners.length
@@ -29,24 +30,36 @@ export default function HeroCarousel({ website = {} }) {
 		];
 		return source.map((slide, index) => ({
 			image: slide.url || DEFAULT_HERO_IMAGES[index % DEFAULT_HERO_IMAGES.length],
-			title: isArabic
-				? slide.titleArabic || slide.titleAr || fallbackTitles[index % fallbackTitles.length]
-				: slide.title || fallbackTitles[index % fallbackTitles.length],
-			subtitle: isArabic
-				? slide.subTitleArabic ||
-					slide.subtitleArabic ||
-					slide.subTitleAr ||
-					fallbackCopy[index % fallbackCopy.length]
-				: slide.subTitle || slide.subtitle || fallbackCopy[index % fallbackCopy.length],
+			title: stripHtml(
+				isArabic
+					? slide.titleArabic || slide.titleAr || fallbackTitles[index % fallbackTitles.length]
+					: slide.title || fallbackTitles[index % fallbackTitles.length]
+			),
+			subtitle: stripHtml(
+				isArabic
+					? slide.subTitleArabic ||
+						slide.subtitleArabic ||
+						slide.subTitleAr ||
+						fallbackCopy[index % fallbackCopy.length]
+					: slide.subTitle || slide.subtitle || fallbackCopy[index % fallbackCopy.length]
+			),
 			buttonTitle:
-				(isArabic && (slide.buttonTitleArabic || slide.buttonTitleAr)) ||
-				(!isArabic && slide.buttonTitle) ||
-				(isArabic ? "استكشف الفنادق" : "Explore hotels"),
+				stripHtml(
+					(isArabic && (slide.buttonTitleArabic || slide.buttonTitleAr)) ||
+						(!isArabic && slide.buttonTitle) ||
+						(isArabic ? "استكشف الفنادق" : "Explore hotels")
+				),
 			href: slide.pageRedirectURL || "/our-hotels",
 		}));
 	}, [isArabic, website]);
 	const [active, setActive] = useState(0);
+	const [hasEntered, setHasEntered] = useState(false);
 	const current = slides[active] || slides[0];
+
+	useEffect(() => {
+		const timer = window.setTimeout(() => setHasEntered(true), 40);
+		return () => window.clearTimeout(timer);
+	}, []);
 
 	useEffect(() => {
 		const timer = setInterval(() => {
@@ -64,7 +77,7 @@ export default function HeroCarousel({ website = {} }) {
 			{slides.map((slide, index) => (
 				<div
 					key={`${slide.image}-${index}`}
-					className={`hero-slide ${index === active ? "active" : ""}`}
+					className={`hero-slide ${index === active && hasEntered ? "active" : ""}`}
 					style={{ backgroundImage: `url(${slide.image})` }}
 				/>
 			))}
@@ -74,11 +87,11 @@ export default function HeroCarousel({ website = {} }) {
 				<h1>{current.title}</h1>
 				<p>{current.subtitle}</p>
 				<div className="hero-actions">
-					<Link className="btn btn-primary" href={current.href}>
+					<Link className="btn btn-primary" href={hrefWithLanguage(current.href)}>
 						{current.buttonTitle}
 						<ArrowRight size={18} />
 					</Link>
-					<Link className="btn btn-ghost" href="/rooms">
+					<Link className="btn btn-ghost" href={hrefWithLanguage("/rooms")}>
 						{isArabic ? "تحقق من التواريخ" : "Check dates"}
 					</Link>
 				</div>

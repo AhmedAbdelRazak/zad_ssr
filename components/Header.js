@@ -39,7 +39,7 @@ const cleanPhone = (value = "") => String(value || "").replace(/[^\d+]/g, "");
 export default function Header({ website = {} }) {
 	const pathname = usePathname();
 	const [mobileOpen, setMobileOpen] = useState(false);
-	const { language, isArabic, t, toggleLanguage, totals, setCartOpen } = useZadApp();
+	const { language, isArabic, t, toggleLanguage, totals, setCartOpen, hrefWithLanguage } = useZadApp();
 	const logo = website?.janatLogo?.url || DEFAULT_LOGO;
 	const email = website?.officialEmail || OFFICIAL_EMAIL;
 	const phone = website?.phone || PHONE_DISPLAY;
@@ -52,7 +52,7 @@ export default function Header({ website = {} }) {
 				const active =
 					item.href === "/" ? pathname === "/" : String(pathname || "").startsWith(item.href);
 				return (
-					<Link className={active ? "active" : ""} href={item.href} key={item.href}>
+					<Link className={active ? "active" : ""} href={hrefWithLanguage(item.href)} key={item.href}>
 						<Icon size={16} />
 						{labelFor(language, item.label)}
 					</Link>
@@ -62,17 +62,17 @@ export default function Header({ website = {} }) {
 	);
 
 	return (
-		<header className="site-header" dir={isArabic ? "rtl" : "ltr"}>
-			<div className="top-strip">
+		<>
+			<div className="top-strip" dir={isArabic ? "rtl" : "ltr"}>
 				<div className="header-container top-strip-inner">
 					<div className="top-contact">
 						<a href={`mailto:${email}`}>
 							<Mail size={15} />
-							{email}
+							<bdi dir="ltr" className="ltr-value">{email}</bdi>
 						</a>
 						<a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer">
 							<MessageCircle size={16} />
-							{phone}
+							<bdi dir="ltr" className="ltr-value">{phone}</bdi>
 						</a>
 					</div>
 					<div className="top-actions">
@@ -88,14 +88,15 @@ export default function Header({ website = {} }) {
 				</div>
 			</div>
 
-			<div className="main-strip">
+			<header className="site-header" dir={isArabic ? "rtl" : "ltr"}>
+				<div className="main-strip">
 				<div className="header-container main-strip-inner">
-					<Link className="logo" href="/" aria-label="ZAD Hotels home">
+					<Link className="logo" href={hrefWithLanguage("/")} aria-label="ZAD Hotels home">
 						<img src={logo} alt="ZAD Hotels" />
 					</Link>
 					{menu}
 					<div className="header-actions">
-						<Link className="icon-action" href="/rooms" aria-label={t("searchRooms")}>
+						<Link className="icon-action" href={hrefWithLanguage("/rooms")} aria-label={t("searchRooms")}>
 							<Search size={18} />
 						</Link>
 						<button className="icon-action" type="button" onClick={() => setCartOpen(true)} aria-label={t("cart")}>
@@ -105,7 +106,7 @@ export default function Header({ website = {} }) {
 						</button>
 						<a className="phone-link" href={`tel:${cleanPhone(phone)}`}>
 							<Phone size={17} />
-							<span>{phone}</span>
+							<span dir="ltr" className="ltr-value">{phone}</span>
 						</a>
 						<Button
 							className="mobile-menu-button"
@@ -116,7 +117,7 @@ export default function Header({ website = {} }) {
 						/>
 					</div>
 				</div>
-			</div>
+				</div>
 
 			<Drawer
 				open={mobileOpen}
@@ -131,7 +132,7 @@ export default function Header({ website = {} }) {
 					{navItems.map((item) => {
 						const Icon = iconMap[item.icon] || Home;
 						return (
-							<Link href={item.href} key={item.href} onClick={() => setMobileOpen(false)}>
+							<Link href={hrefWithLanguage(item.href)} key={item.href} onClick={() => setMobileOpen(false)}>
 								<Icon size={18} />
 								{labelFor(language, item.label)}
 							</Link>
@@ -150,19 +151,20 @@ export default function Header({ website = {} }) {
 						className="mobile-line-button"
 					>
 						<ShoppingBag size={18} />
-						{t("cart")} ({totals.rooms})
+						{t("cart")} <span dir="ltr" className="ltr-value">({totals.rooms})</span>
 					</button>
 					<a className="mobile-cta" href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer">
 						<MessageCircle size={18} />
 						{t("whatsapp")}
 					</a>
-					<Link className="mobile-cta secondary" href="/rooms" onClick={() => setMobileOpen(false)}>
+					<Link className="mobile-cta secondary" href={hrefWithLanguage("/rooms")} onClick={() => setMobileOpen(false)}>
 						<CalendarDays size={18} />
 						{t("searchRooms")}
 					</Link>
 				</div>
 			</Drawer>
 			<CartDrawer />
-		</header>
+			</header>
+		</>
 	);
 }

@@ -14,7 +14,7 @@ import { slugifyHotel, titleCase } from "../lib/format";
 import { useZadApp } from "./ZadAppProvider";
 
 export default function Footer({ website = {}, hotels = [] }) {
-	const { t, isArabic } = useZadApp();
+	const { t, isArabic, hrefWithLanguage } = useZadApp();
 	const logo = website?.janatLogo?.url || DEFAULT_LOGO;
 	const footerImage = website?.footerBanner?.url || DEFAULT_FOOTER_IMAGE;
 	const topHotels = Array.isArray(hotels) ? hotels.slice(0, 4) : [];
@@ -30,8 +30,8 @@ export default function Footer({ website = {}, hotels = [] }) {
 					<p>{t("footerTagline")}</p>
 					<h3>{t("elegance")}</h3>
 					<div className="socials">
-						<a href="/" aria-label="X">X</a>
-						<a href="/" aria-label="Instagram">IG</a>
+						<Link href={hrefWithLanguage("/")} aria-label="X">X</Link>
+						<Link href={hrefWithLanguage("/")} aria-label="Instagram">IG</Link>
 						<a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer" aria-label="WhatsApp">
 							<MessageCircle size={24} />
 						</a>
@@ -47,15 +47,15 @@ export default function Footer({ website = {}, hotels = [] }) {
 					<h3>{t("service")}</h3>
 					<a href={`tel:${phone.replace(/[^\d+]/g, "")}`}>
 						<Phone size={18} />
-						{phone}
+						<bdi dir="ltr" className="ltr-value">{phone}</bdi>
 					</a>
 					<a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer">
 						<MessageCircle size={18} />
-						+966 54 260 8358
+						<bdi dir="ltr" className="ltr-value">+966 54 260 8358</bdi>
 					</a>
 					<a href={`mailto:${email}`}>
 						<Mail size={18} />
-						{email}
+						<bdi dir="ltr" className="ltr-value">{email}</bdi>
 					</a>
 					<div className="newsletter">
 						<strong>{t("luxury")}</strong>
@@ -66,10 +66,10 @@ export default function Footer({ website = {}, hotels = [] }) {
 				</div>
 			</div>
 			<div className="container footer-links">
-				<Link href="/rooms">{t("searchRooms")}</Link>
-				<Link href="/zad-offers-monthly-reservations">{isArabic ? "العروض" : "Offers"}</Link>
+				<Link href={hrefWithLanguage("/rooms")}>{t("searchRooms")}</Link>
+				<Link href={hrefWithLanguage("/zad-offers-monthly-reservations")}>{isArabic ? "العروض" : "Offers"}</Link>
 				{topHotels.map((hotel) => (
-					<Link key={hotel._id} href={`/single-hotel/${slugifyHotel(hotel.hotelName)}`}>
+					<Link key={hotel._id} href={hrefWithLanguage(`/single-hotel/${slugifyHotel(hotel.hotelName)}`)}>
 						{isArabic && hotel.hotelName_OtherLanguage ? hotel.hotelName_OtherLanguage : titleCase(hotel.hotelName)}
 					</Link>
 				))}

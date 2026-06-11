@@ -92,6 +92,7 @@ Components
   - Client-side carousel for homepage hero.
   - Uses website homeMainBanners or default Zad images.
   - In Arabic mode, Arabic fallback hero copy is used unless custom Arabic banner text is saved.
+  - The first visible slide intentionally receives its active state after mount so the background zoom-out animation plays on the initial page load too.
 - D:\JannatBooking\zad_ssr\components\SearchPanel.js
   - Client-side Ant Design hotel/date/room search form.
 - D:\JannatBooking\zad_ssr\components\HotelCard.js
@@ -481,3 +482,108 @@ Production HTTPS Enforcement - 2026-06-10
     - Location: https://zadhotels.jannatbooking.com/
     - https://zadhotels.jannatbooking.com -> HTTP/2 200
     - strict-transport-security: max-age=31536000
+
+Zad Hotel Detail, Checkout, And Support Parity Pass - 2026-06-10
+- Single hotel pages were reworked to feel much closer to the JannatBooking hotel detail pattern.
+  - D:\JannatBooking\zad_ssr\components\SingleHotelView.js now renders:
+    - a branded hotel overview hero
+    - an image collage
+    - sticky hotel section navigation
+    - overview/location cards
+    - Jannat-like room rows with the room image on the right and aligned action buttons
+    - a hotel-specific support CTA
+- The site header was split so the top service strip scrolls normally while the main navigation strip remains sticky.
+  - Arabic main navigation labels are larger on desktop for readability.
+- /our-hotels and /rooms now keep the search/filter panel overlapping the hero section.
+- /checkout no longer uses a large hero block.
+  - D:\JannatBooking\zad_ssr\components\CheckoutClient.js now includes:
+    - Jannat-style payment options
+    - 15% online deposit option
+    - full online payment option
+    - reserve-now-pay-in-hotel option when the hotel allows it
+    - PayPal/card buttons through @paypal/react-paypal-js
+    - the same single-hotel-per-reservation guard as Jannat checkout
+    - reservation payloads shaped for the existing PayPal reservation backend
+- D:\JannatBooking\zad_ssr\lib\booking.js was added.
+  - Shared pricing helper for nightly pricing rows, cart totals, Jannat-style pickedRoomsType payloads, and legacy commission/deposit accounting.
+- D:\JannatBooking\zad_ssr\app\reservation-confirmed\page.js was added.
+  - Successful paid or reserve-now flows now land on a Zad confirmation page.
+- D:\JannatBooking\zad_ssr\components\SupportWidget.js now joins the existing support-case Socket.IO room.
+  - It still polls as a fallback.
+  - Zad support cases include sourceWebsite/sourcePage/sourceUrl values so the shared supportcase backend can identify that the case came from zadhotels.
+  - The widget remains hotel-scoped and does not show a Jannat/global support option.
+- Verification:
+  - npm run build passed.
+  - Backend syntax checks passed for the related support/paypal/zad files.
+  - Playwright checks passed with no horizontal overflow:
+    - single hotel desktop: scrollWidth 1440, clientWidth 1440
+    - rooms desktop: scrollWidth 1440, clientWidth 1440
+    - hotels mobile: scrollWidth 390, clientWidth 390
+    - checkout mobile: scrollWidth 390, clientWidth 390
+  - Header scroll behavior verified:
+    - top service strip scrolls away
+    - main navigation remains at top: 0
+- Arabic desktop navigation font verified at 16px.
+
+Hero Mount Animation And Favicon Pass - 2026-06-10
+- D:\JannatBooking\zad_ssr\components\HeroCarousel.js now starts the first background image from the same zoomed-in state used by later slides.
+  - After the page mounts, the active slide is applied and the image eases into its normal scale.
+  - This keeps the homepage hero zoom-out effect visible immediately when a guest first opens the page.
+- Zad favicon and app icons were generated from the Zad logo and registered in:
+  - D:\JannatBooking\zad_ssr\app\layout.js
+  - D:\JannatBooking\zad_ssr\public\favicon.ico
+  - D:\JannatBooking\zad_ssr\public\icons
+  - D:\JannatBooking\zad_ssr\public\site.webmanifest
+
+Language URL And Arabic Number Display Pass - 2026-06-10
+- Language is now shareable through the URL query parameter:
+  - Arabic: ?lang=ar
+  - English: ?lang=en
+- D:\JannatBooking\zad_ssr\lib\language.js was added.
+  - It normalizes language values.
+  - It adds or updates lang on internal links while leaving external links unchanged.
+- D:\JannatBooking\zad_ssr\components\ZadAppProvider.js now:
+  - reads lang from the current URL on load
+  - falls back to localStorage when no lang query exists
+  - writes the selected language back to localStorage
+  - updates the current URL when the language is changed
+  - exposes hrefWithLanguage so internal links preserve the selected language
+- Internal navigation now preserves lang across:
+  - header links
+  - home hero buttons
+  - hotel cards
+  - room cards
+  - cart drawer checkout/browse buttons
+  - footer links
+  - checkout success redirects
+  - reservation confirmation buttons
+  - room search query submissions
+- Arabic display audit:
+  - Arabic text remains RTL.
+  - Phone numbers, emails, dates, room counts, ratings, distances, currency amounts, and confirmation numbers are explicitly rendered LTR.
+  - The visible fixes are applied in:
+    - Header
+    - Footer
+    - ContactCards
+    - HotelCard
+    - RoomCard
+    - SingleHotelView
+    - CartDrawer
+    - CheckoutClient
+    - reservation-confirmed page
+    - SupportWidget contact input
+- Verification:
+  - npm run build passed.
+  - Playwright verified /contact?lang=ar has document dir=rtl with no horizontal overflow.
+  - Playwright verified header, main phone CTA, contact card phone, and email values compute as direction=ltr.
+  - Playwright verified changing language from English updates the URL to ?lang=ar.
+  - Playwright verified navigating to /rooms preserves ?lang=ar.
+  - Playwright verified room search submissions keep lang=ar alongside date and guest filters.
+  - Playwright verified the first homepage hero image starts zoomed in and eases toward normal scale after mount.
+
+Homepage Rich Text Cleanup - 2026-06-10
+- The homepage intro section now strips saved About Us HTML before rendering summary copy.
+  - This prevents literal tags such as <h1> and <p> from appearing inside the homepage paragraph.
+  - If the saved content contains paragraphs, the homepage uses the paragraph text instead of including heading text in the summary.
+  - The About page still renders the saved rich HTML intentionally.
+- The homepage carousel also strips HTML from saved banner title, subtitle, and button text because those are plain-text display areas.

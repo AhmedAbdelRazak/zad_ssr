@@ -22,9 +22,13 @@ export default async function OurHotelsPage() {
 				titleAr="مجموعة فنادقنا"
 				copyAr="تصفح فنادق زاد، قارن المواقع، واختر نوع الغرفة الأنسب لرحلتك."
 			/>
+			<section className="search-band page-search-band">
+				<div className="container">
+					<SearchPanel hotels={hotels} roomTypes={roomTypes} compact />
+				</div>
+			</section>
 			<section className="section">
 				<div className="container page-stack">
-					<SearchPanel hotels={hotels} roomTypes={roomTypes} compact />
 					<HotelExplorer hotels={hotels} />
 				</div>
 			</section>

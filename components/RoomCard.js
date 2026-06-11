@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Button } from "antd";
 import { BedDouble, MessageCircle, ShoppingBag } from "lucide-react";
+import { buildRoomPricing } from "../lib/booking";
 import { WHATSAPP_NUMBER } from "../lib/constants";
 import { firstImage, roomTypeLabel, sar, slugifyHotel, titleCase } from "../lib/format";
 import { useZadApp } from "./ZadAppProvider";
@@ -19,8 +20,10 @@ export default function RoomCard({
 	whatsappNumber = WHATSAPP_NUMBER,
 	checkIn,
 	checkOut,
+	adults = 1,
+	children = 0,
 }) {
-	const { addToCart, t, isArabic } = useZadApp();
+	const { addToCart, t, isArabic, hrefWithLanguage } = useZadApp();
 	const image = firstImage(room.photos, hotel.hotelPhotos);
 	const roomName =
 		isArabic && room.displayName_OtherLanguage
@@ -34,6 +37,7 @@ export default function RoomCard({
 	const price = Number(room?.price?.basePrice || 0);
 	const selectedCheckIn = checkIn || dateOffset(1);
 	const selectedCheckOut = checkOut || dateOffset(4);
+	const pricing = buildRoomPricing(room, selectedCheckIn, selectedCheckOut);
 	const message = encodeURIComponent(
 		isArabic
 			? `مرحبا زاد للفنادق، أرغب بالاستفسار عن ${roomName} في ${hotelName}.`
@@ -46,14 +50,29 @@ export default function RoomCard({
 			hotelId: hotel._id,
 			hotelName,
 			hotelSlug: slug,
+			belongsTo: hotel?.belongsTo?._id || hotel?.belongsTo || "",
+			hotelAddress: hotel.hotelAddress || "",
+			hotelCity: hotel.hotelCity || "",
+			hotelState: hotel.hotelState || "",
+			hotelCountry: hotel.hotelCountry || "",
+			guestPaymentAcceptance: hotel.guestPaymentAcceptance,
 			roomId: room._id,
 			roomType: room.roomType,
 			roomName,
+			roomNameOtherLanguage: room.displayName_OtherLanguage || "",
+			roomColor: room.roomColor || "",
+			defaultCost: room.defaultCost,
+			roomCommission: room.roomCommission,
+			bedsCount: room.bedsCount,
+			adults: Number(adults || 1),
+			children: Number(children || 0),
+			photos: Array.isArray(room.photos) ? room.photos : [],
 			image,
 			price,
 			amount: 1,
 			checkIn: selectedCheckIn,
 			checkOut: selectedCheckOut,
+			...pricing,
 		});
 	};
 
@@ -70,16 +89,16 @@ export default function RoomCard({
 							: "Comfortable room option with Zad support available for booking details.")}
 				</p>
 				<div className="room-meta">
-					<strong>{price ? sar(price) : t("priceOnRequest")}</strong>
+					<strong dir={price ? "ltr" : undefined} className={price ? "ltr-value" : undefined}>{price ? sar(price) : t("priceOnRequest")}</strong>
 					{room.bedsCount ? (
 						<small>
 							<BedDouble size={14} />
-							{room.bedsCount} {isArabic ? "أسرة" : "beds"}
+							<bdi dir="ltr" className="ltr-value">{room.bedsCount}</bdi> {isArabic ? "أسرة" : "beds"}
 						</small>
 					) : null}
 				</div>
 				<div className="room-actions">
-					<Link className="btn btn-ghost" href={`/single-hotel/${slug}`}>
+					<Link className="btn btn-ghost" href={hrefWithLanguage(`/single-hotel/${slug}`)}>
 						{t("hotelDetails")}
 					</Link>
 					<Button type="primary" icon={<ShoppingBag size={17} />} onClick={handleAdd}>

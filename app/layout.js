@@ -20,6 +20,17 @@ export const metadata = {
 		siteName: BRAND_NAME,
 		images: [DEFAULT_HERO_IMAGE],
 	},
+	icons: {
+		icon: [
+			{ url: "/favicon.ico", sizes: "32x32" },
+			{ url: "/icons/icon-32.png", type: "image/png", sizes: "32x32" },
+			{ url: "/icons/icon-48.png", type: "image/png", sizes: "48x48" },
+			{ url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
+			{ url: "/icons/icon-512.png", type: "image/png", sizes: "512x512" },
+		],
+		apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+	},
+	manifest: "/site.webmanifest",
 	twitter: {
 		card: "summary_large_image",
 		images: [DEFAULT_HERO_IMAGE],

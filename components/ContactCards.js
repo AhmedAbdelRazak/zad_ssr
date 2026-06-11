@@ -7,20 +7,20 @@ export default function ContactCards({ email, phone, whatsapp }) {
 	const { t, isArabic } = useZadApp();
 	return (
 		<div className="container contact-grid" dir={isArabic ? "rtl" : "ltr"}>
-			<a href={`mailto:${email}`}>
+			<a className="contact-card premium-card" href={`mailto:${email}`}>
 				<Mail size={24} />
 				<span>{t("emailAddress")}</span>
-				<strong>{email}</strong>
+				<strong dir="ltr" className="ltr-value">{email}</strong>
 			</a>
-			<a href={`tel:${phone.replace(/[^\d+]/g, "")}`}>
+			<a className="contact-card premium-card" href={`tel:${phone.replace(/[^\d+]/g, "")}`}>
 				<Phone size={24} />
 				<span>{t("phone")}</span>
-				<strong>{phone}</strong>
+				<strong dir="ltr" className="ltr-value">{phone}</strong>
 			</a>
-			<a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer">
+			<a className="contact-card premium-card" href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer">
 				<MessageCircle size={24} />
 				<span>{t("whatsapp")}</span>
-				<strong>{phone}</strong>
+				<strong dir="ltr" className="ltr-value">{phone}</strong>
 			</a>
 		</div>
 	);

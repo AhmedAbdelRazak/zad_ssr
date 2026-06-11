@@ -12,7 +12,7 @@ const dateOffset = (days) => dayjs().add(days, "day").format("YYYY-MM-DD");
 
 export default function SearchPanel({ hotels = [], roomTypes = [], compact = false, defaults = {} }) {
 	const router = useRouter();
-	const { t, isArabic } = useZadApp();
+	const { t, isArabic, language } = useZadApp();
 	const destinations = useMemo(() => {
 		const values = new Set([{ label: t("all"), value: "All" }]);
 		const seen = new Set(["All"]);
@@ -48,6 +48,7 @@ export default function SearchPanel({ hotels = [], roomTypes = [], compact = fal
 			roomType,
 			adults: String(adults || 1),
 			children: String(children || 0),
+			lang: language,
 		});
 		router.push(`/rooms?${params.toString()}`);
 	};

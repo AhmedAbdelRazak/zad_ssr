@@ -462,3 +462,31 @@ Production Zad Defaults Deployment Result - 2026-06-10
     - Cloudinary footer URL
     - aboutUsArabic present
     - third carousel route set to /rooms
+
+Zad Checkout, PayPal, And Support Origin Backend Notes - 2026-06-10
+- D:\JannatBooking\hotels_backend\models\supportcase.js now stores public support origin fields:
+  - sourceWebsite
+  - sourcePage
+  - sourceUrl
+- D:\JannatBooking\hotels_backend\controllers\supportcase.js accepts those fields when creating a support case.
+  - Zad sends sourceWebsite="zad_ssr".
+  - This lets the same supportcase collection and Socket.IO flow identify cases opened from zadhotels.
+  - The case is still supportScope="hotel" and still uses the selected Zad hotel/owner.
+- D:\JannatBooking\hotels_backend\controllers\paypal_reservation.js now returns the public PayPal clientId with /api/paypal/token-generated.
+  - This is needed because zad_ssr is a Next.js app and should not need local hardcoded PayPal public client ids to initialize the PayPal buttons.
+  - The PayPal secret remains server-side only.
+- D:\JannatBooking\hotels_backend\controllers\zadcontroller.js now includes guestPaymentAcceptance in public Zad hotel payloads.
+  - Zad checkout uses that hotel setting to decide which payment options are visible:
+    - deposit online
+    - full online payment
+    - reserve now, pay in hotel
+- Related Zad SSR frontend files:
+  - D:\JannatBooking\zad_ssr\components\CheckoutClient.js
+  - D:\JannatBooking\zad_ssr\lib\booking.js
+  - D:\JannatBooking\zad_ssr\components\SupportWidget.js
+- Verification:
+  - node --check passed for:
+    - controllers/supportcase.js
+    - controllers/paypal_reservation.js
+    - controllers/zadcontroller.js
+    - models/supportcase.js

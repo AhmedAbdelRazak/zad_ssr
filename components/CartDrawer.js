@@ -13,6 +13,7 @@ export default function CartDrawer() {
 		setCartOpen,
 		t,
 		totals,
+		hrefWithLanguage,
 		updateCartItem,
 		removeCartItem,
 		nightsBetween,
@@ -45,7 +46,7 @@ export default function CartDrawer() {
 										<span>{item.hotelName}</span>
 										<small>
 											<CalendarDays size={13} />
-											{item.checkIn} - {item.checkOut} · {nights}{" "}
+											<bdi dir="ltr" className="ltr-value">{item.checkIn} - {item.checkOut}</bdi> · <bdi dir="ltr" className="ltr-value">{nights}</bdi>{" "}
 											{nights > 1 ? t("nights") : t("night")}
 										</small>
 										<div className="cart-row-actions">
@@ -64,8 +65,8 @@ export default function CartDrawer() {
 											</button>
 										</div>
 										<div className="cart-line-total">
-											<span>{sar(item.price)}</span>
-											<strong>{sar(Number(item.price || 0) * Number(item.amount || 1) * nights)}</strong>
+											<span dir="ltr" className="ltr-value">{sar(item.price)}</span>
+											<strong dir="ltr" className="ltr-value">{sar(Number(item.price || 0) * Number(item.amount || 1) * nights)}</strong>
 										</div>
 									</div>
 								</article>
@@ -75,9 +76,9 @@ export default function CartDrawer() {
 					<Divider />
 					<div className="cart-total">
 						<span>{t("subtotal")}</span>
-						<strong>{sar(totals.amount)}</strong>
+						<strong dir="ltr" className="ltr-value">{sar(totals.amount)}</strong>
 					</div>
-					<Link href="/checkout" onClick={() => setCartOpen(false)}>
+					<Link href={hrefWithLanguage("/checkout")} onClick={() => setCartOpen(false)}>
 						<Button type="primary" size="large" block icon={<BedDouble size={18} />}>
 							{t("checkout")}
 						</Button>
@@ -89,7 +90,7 @@ export default function CartDrawer() {
 			) : (
 				<div className="cart-empty">
 					<Empty description={t("cartEmpty")} />
-					<Link href="/our-hotels" onClick={() => setCartOpen(false)}>
+					<Link href={hrefWithLanguage("/our-hotels")} onClick={() => setCartOpen(false)}>
 						<Button type="primary" block>
 							{t("browseHotels")}
 						</Button>
