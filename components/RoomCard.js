@@ -4,8 +4,8 @@ import Link from "next/link";
 import { Button } from "antd";
 import { BedDouble, MessageCircle, ShoppingBag } from "lucide-react";
 import { buildRoomPricing } from "../lib/booking";
-import { WHATSAPP_NUMBER } from "../lib/constants";
 import { firstImage, roomTypeLabel, sar, slugifyHotel, titleCase } from "../lib/format";
+import { openZadSupport } from "../lib/support";
 import OptimizedImage from "./OptimizedImage";
 import { useZadApp } from "./ZadAppProvider";
 
@@ -18,7 +18,6 @@ const dateOffset = (days) => {
 export default function RoomCard({
 	hotel = {},
 	room = {},
-	whatsappNumber = WHATSAPP_NUMBER,
 	checkIn,
 	checkOut,
 	adults = 1,
@@ -39,11 +38,9 @@ export default function RoomCard({
 	const selectedCheckIn = checkIn || dateOffset(1);
 	const selectedCheckOut = checkOut || dateOffset(4);
 	const pricing = buildRoomPricing(room, selectedCheckIn, selectedCheckOut);
-	const message = encodeURIComponent(
-		isArabic
-			? `مرحبا زاد للفنادق، أرغب بالاستفسار عن ${roomName} في ${hotelName}.`
-			: `Hello ZAD Hotels, I am interested in ${roomName} at ${hotelName}.`
-	);
+	const supportMessage = isArabic
+		? `\u0645\u0631\u062d\u0628\u0627 \u0632\u0627\u062f \u0644\u0644\u0641\u0646\u0627\u062f\u0642\u060c \u0623\u0631\u063a\u0628 \u0628\u0627\u0644\u0627\u0633\u062a\u0641\u0633\u0627\u0631 \u0639\u0646 ${roomName} \u0641\u064a ${hotelName}.`
+		: `Hello ZAD Hotels, I am interested in ${roomName} at ${hotelName}.`;
 
 	const handleAdd = () => {
 		addToCart({
@@ -77,6 +74,14 @@ export default function RoomCard({
 		});
 	};
 
+	const handleOpenChat = () => {
+		openZadSupport({
+			hotel,
+			hotelName,
+			message: supportMessage,
+		});
+	};
+
 	return (
 		<article className="room-card premium-card" dir={isArabic ? "rtl" : "ltr"}>
 			{image ? (
@@ -95,7 +100,7 @@ export default function RoomCard({
 				<p>
 					{(isArabic && room.description_OtherLanguage) || room.description ||
 						(isArabic
-							? "خيار غرفة مريح مع دعم زاد المتاح لمساعدتك في تفاصيل الحجز."
+							? "\u062e\u064a\u0627\u0631 \u063a\u0631\u0641\u0629 \u0645\u0631\u064a\u062d \u0645\u0639 \u062f\u0639\u0645 \u0632\u0627\u062f \u0627\u0644\u0645\u062a\u0627\u062d \u0644\u0645\u0633\u0627\u0639\u062f\u062a\u0643 \u0641\u064a \u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u062d\u062c\u0632."
 							: "Comfortable room option with Zad support available for booking details.")}
 				</p>
 				<div className="room-meta">
@@ -103,7 +108,7 @@ export default function RoomCard({
 					{room.bedsCount ? (
 						<small>
 							<BedDouble size={14} />
-							<bdi dir="ltr" className="ltr-value">{room.bedsCount}</bdi> {isArabic ? "أسرة" : "beds"}
+							<bdi dir="ltr" className="ltr-value">{room.bedsCount}</bdi> {isArabic ? "\u0623\u0633\u0631\u0629" : "beds"}
 						</small>
 					) : null}
 				</div>
@@ -114,10 +119,10 @@ export default function RoomCard({
 					<Button type="primary" icon={<ShoppingBag size={17} />} onClick={handleAdd}>
 						{t("addToCart")}
 					</Button>
-					<a className="btn btn-metal" href={`https://wa.me/${whatsappNumber}?text=${message}`} target="_blank" rel="noreferrer">
+					<button type="button" className="btn btn-metal" onClick={handleOpenChat}>
 						<MessageCircle size={17} />
 						{t("askToBook")}
-					</a>
+					</button>
 				</div>
 			</div>
 		</article>

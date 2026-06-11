@@ -48,6 +48,25 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 	}, []);
 
 	useEffect(() => {
+		const openSelectedHotelChat = (event) => {
+			const detail = event?.detail || {};
+			const hotelId = String(detail.hotelId || "");
+			setOpen(true);
+			setError("");
+			setNotice("");
+			if (!caseId && (hotelId || detail.message)) {
+				setForm((current) => ({
+					...current,
+					hotelId: hotelId || current.hotelId,
+					message: detail.message || current.message,
+				}));
+			}
+		};
+		window.addEventListener("zad:open-support", openSelectedHotelChat);
+		return () => window.removeEventListener("zad:open-support", openSelectedHotelChat);
+	}, [caseId]);
+
+	useEffect(() => {
 		if (!caseId || !open) return undefined;
 		let cancelled = false;
 		const load = async () => {

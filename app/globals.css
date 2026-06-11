@@ -1548,11 +1548,16 @@ html[dir="rtl"] .auth-submit svg {
 
 .hotel-card-show-more {
 	width: fit-content;
+	border: 0;
+	padding: 0;
 	color: var(--zad-purple);
+	background: transparent;
 	font-size: 12px;
 	font-weight: 950;
+	font-family: inherit;
 	text-decoration: underline;
 	text-underline-offset: 3px;
+	cursor: pointer;
 }
 
 .hotel-card-distance-row {
@@ -1561,6 +1566,22 @@ html[dir="rtl"] .auth-submit svg {
 	margin-top: auto;
 	color: var(--zad-blue);
 	font-weight: 950;
+}
+
+.hotel-card-distance-row .distance-pill {
+	min-height: 28px;
+	border-radius: 999px;
+	padding: 3px 9px;
+	background: rgba(248, 251, 255, 0.86);
+	border: 1px solid rgba(36, 84, 125, 0.1);
+}
+
+.hotel-card-distance-row .distance-pill.walking svg {
+	color: #0a8f82;
+}
+
+.hotel-card-distance-row .distance-pill.driving svg {
+	color: #2557c7;
 }
 
 .hotel-card-actions {
@@ -1622,9 +1643,12 @@ html[dir="rtl"] .hotel-card-cancel {
 
 .hotel-card-chat {
 	position: relative;
+	border: 0;
 	color: #fff;
 	background: var(--zad-metal-mixed);
 	box-shadow: 0 12px 24px rgba(15, 143, 112, 0.18);
+	cursor: pointer;
+	font: inherit;
 }
 
 .hotel-card-chat i {
@@ -1838,6 +1862,23 @@ html[dir="rtl"] .hotel-card-details-link svg {
 	color: rgba(255, 255, 255, 0.86);
 	font-size: 17px;
 	line-height: 1.5;
+}
+
+.hotel-distance-options {
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.hotel-distance-options span {
+	min-height: 34px;
+	border-radius: 999px;
+	padding: 4px 11px;
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	background: rgba(255, 255, 255, 0.1);
+	border: 1px solid rgba(255, 255, 255, 0.16);
+	box-shadow: inset 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .hotel-showcase-points {

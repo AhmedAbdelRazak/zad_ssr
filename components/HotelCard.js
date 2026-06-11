@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import {
 	AirVent,
 	ArrowRight,
@@ -12,6 +13,7 @@ import {
 	Coffee,
 	ConciergeBell,
 	Eye,
+	Footprints,
 	MapPin,
 	MessageCircle,
 	Mountain,
@@ -26,7 +28,8 @@ import {
 	Wifi,
 } from "lucide-react";
 import { DEFAULT_HERO_IMAGE } from "../lib/constants";
-import { firstImage, hotelLocation, sar, slugifyHotel, titleCase, walkingDistance } from "../lib/format";
+import { drivingDistance, firstImage, hotelLocation, sar, slugifyHotel, titleCase, walkingDistanceOnly } from "../lib/format";
+import { openZadSupport } from "../lib/support";
 import OptimizedImage from "./OptimizedImage";
 import { useZadApp } from "./ZadAppProvider";
 
@@ -91,27 +94,39 @@ const addressLine = (hotel = {}) =>
 
 export default function HotelCard({ hotel = {}, priority = false }) {
 	const { t, language, isArabic, hrefWithLanguage } = useZadApp();
+	const [amenitiesExpanded, setAmenitiesExpanded] = useState(false);
 	const images = hotelImages(hotel);
 	const image = images[0] || DEFAULT_HERO_IMAGE;
 	const slug = slugifyHotel(hotel.hotelName);
 	const price = minBasePrice(hotel);
 	const oldPrice = price ? Math.ceil(price * 1.1) : 0;
 	const roomsCount = (hotel.roomCountDetails || []).length;
-	const distance = walkingDistance(hotel);
+	const walking = walkingDistanceOnly(hotel);
+	const driving = drivingDistance(hotel);
 	const features = hotelFeatures(hotel);
-	const visibleFeatures = features.slice(0, 15);
+	const visibleFeatures = amenitiesExpanded ? features : features.slice(0, 15);
 	const displayName =
 		isArabic && hotel.hotelName_OtherLanguage
 			? hotel.hotelName_OtherLanguage
 			: titleCase(hotel.hotelName);
 	const rating = Math.max(0, Math.min(5, Number(hotel.hotelRating || 0)));
+	const showDrivingDistance = driving && driving !== walking;
 	const labels = {
 		perNight: isArabic ? "/ \u0644\u064a\u0644\u0629" : "/ night",
 		freeCancellation: isArabic ? "\u0625\u0644\u063a\u0627\u0621 \u0645\u062c\u0627\u0646\u064a" : "Free cancellation",
 		chat: isArabic ? "\u062a\u062d\u062f\u062b \u0645\u0639 \u0632\u0627\u062f" : "Chat With Zad",
 		available: isArabic ? "\u0645\u062a\u0627\u062d" : "Available",
 		showMore: isArabic ? "\u0639\u0631\u0636 \u0623\u0643\u062b\u0631" : "Show more",
-		toHaram: isArabic ? "\u0625\u0644\u0649 \u0627\u0644\u062d\u0631\u0645" : "to Al Haram",
+		showLess: isArabic ? "\u0639\u0631\u0636 \u0623\u0642\u0644" : "Show less",
+		walkingToHaram: isArabic ? "\u0645\u0634\u064a\u0627\u064b \u0625\u0644\u0649 \u0627\u0644\u062d\u0631\u0645" : "walk to Al Haram",
+		drivingToHaram: isArabic ? "\u0628\u0627\u0644\u0633\u064a\u0627\u0631\u0629 \u0625\u0644\u0649 \u0627\u0644\u062d\u0631\u0645" : "drive to Al Haram",
+	};
+
+	const handleOpenChat = () => {
+		openZadSupport({
+			hotel,
+			hotelName: displayName,
+		});
 	};
 
 	return (
@@ -199,20 +214,31 @@ export default function HotelCard({ hotel = {}, priority = false }) {
 					</div>
 				) : null}
 
-				{features.length > visibleFeatures.length ? (
-					<Link href={hrefWithLanguage(`/single-hotel/${slug}`)} className="hotel-card-show-more">
-						{labels.showMore}
-					</Link>
+				{features.length > 15 ? (
+					<button
+						type="button"
+						className="hotel-card-show-more"
+						aria-expanded={amenitiesExpanded}
+						onClick={() => setAmenitiesExpanded((current) => !current)}
+					>
+						{amenitiesExpanded ? labels.showLess : labels.showMore}
+					</button>
 				) : null}
 
 				<div className="hotel-card-distance-row">
-					{distance ? (
-						<span>
-							<Car size={15} />
-							<bdi dir="ltr" className="ltr-value">{distance}</bdi> {labels.toHaram}
+					{walking ? (
+						<span className="distance-pill walking">
+							<Footprints size={15} />
+							<bdi dir="ltr" className="ltr-value">{walking}</bdi> {labels.walkingToHaram}
 						</span>
 					) : null}
-					<span>
+					{showDrivingDistance ? (
+						<span className="distance-pill driving">
+							<Car size={15} />
+							<bdi dir="ltr" className="ltr-value">{driving}</bdi> {labels.drivingToHaram}
+						</span>
+					) : null}
+					<span className="distance-pill rooms">
 						<BedDouble size={15} />
 						<bdi dir="ltr" className="ltr-value">{roomsCount}</bdi> {roomsCount === 1 ? t("room") : t("rooms")}
 					</span>
@@ -226,11 +252,11 @@ export default function HotelCard({ hotel = {}, priority = false }) {
 						<CheckCircle2 size={15} />
 						{labels.freeCancellation}
 					</span>
-					<Link href={hrefWithLanguage(`/single-hotel/${slug}#support`)} className="hotel-card-chat">
+					<button type="button" className="hotel-card-chat" onClick={handleOpenChat}>
 						<MessageCircle size={16} />
 						<span>{labels.chat}</span>
 						<i />
-					</Link>
+					</button>
 					<Link href={hrefWithLanguage(`/single-hotel/${slug}`)} className="hotel-card-details-link">
 						{t("viewHotel")}
 						<ArrowRight size={16} />

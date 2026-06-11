@@ -961,3 +961,46 @@ Production Deployment Result - Zad Client Auth And Chat Close - 2026-06-10
   - hotels-backend PM2 status was online.
   - zad-ssr error log showed no new errors.
   - hotels-backend error log only showed old unrelated public-search/currency fallback messages, not errors from the new Zad auth routes.
+
+Zad Hotel Card Interaction Pass - 2026-06-10
+- Purpose:
+  - Keep the /our-hotels page focused and avoid surprising navigation when guests click Show more.
+  - Make Chat With Zad / تحدث مع زاد open the in-app support widget with the related hotel already selected.
+  - Show walking and driving distance to Al Haram with clear, polished icons.
+- Frontend files updated:
+  - D:\JannatBooking\zad_ssr\components\HotelCard.js
+    - Show more now expands/collapses the amenity list inside the same hotel card.
+    - It no longer links to the single-hotel page.
+    - Chat With Zad now opens the SupportWidget through the zad:open-support browser event.
+    - The View hotel button remains the explicit way to open the single-hotel page.
+    - Hotel cards now show walking and driving distance pills separately when both values exist.
+  - D:\JannatBooking\zad_ssr\components\SupportWidget.js
+    - Listens for the zad:open-support browser event.
+    - Opens the support panel and pre-selects the hotel from the clicked card or room.
+    - If the click includes a suggested message, the message box is prefilled.
+  - D:\JannatBooking\zad_ssr\components\RoomCard.js
+    - Ask-to-book buttons now open the in-app Zad chat instead of WhatsApp.
+    - The room and hotel context is passed into the chat message.
+  - D:\JannatBooking\zad_ssr\components\SingleHotelView.js
+    - Single-hotel ask-to-book buttons now open the in-app Zad chat.
+    - The phone number remains a phone link.
+    - The hero and facts area show walking/driving cues with separate icons.
+  - D:\JannatBooking\zad_ssr\lib\format.js
+    - Adds separate helpers for walking-only and driving distance display.
+    - Keeps the older walkingDistance helper as a safe fallback for existing sorting/search usage.
+  - D:\JannatBooking\zad_ssr\lib\support.js
+    - Adds a small shared helper for opening Zad support from any client component.
+  - D:\JannatBooking\zad_ssr\app\globals.css
+    - Adds styling for amenity expansion buttons, hotel-card distance pills, and single-hotel distance options.
+- Local verification:
+  - npm run build passed.
+  - Playwright checked:
+    - /our-hotels?lang=ar desktop
+    - /our-hotels?lang=ar mobile
+    - /single-hotel/zad-al-sad?lang=ar desktop
+  - Results:
+    - Show more stayed on /our-hotels?lang=ar and expanded the first card from 15 to 20 amenities.
+    - Chat With Zad opened the support widget with a selected hotel.
+    - Single-hotel and room ask-to-book buttons opened the same support widget with hotel context.
+    - Walking and driving distance pills rendered on hotel cards and the single-hotel hero.
+    - No browser console errors were reported in the checked flows.

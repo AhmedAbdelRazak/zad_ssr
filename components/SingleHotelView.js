@@ -1,9 +1,10 @@
 "use client";
 
-import { BedDouble, CalendarDays, MapPin, MessageCircle, Navigation, ShieldCheck, Star } from "lucide-react";
+import { BedDouble, CalendarDays, Car, Footprints, MapPin, MessageCircle, ShieldCheck, Star } from "lucide-react";
 import RoomCard from "./RoomCard";
-import { DEFAULT_HERO_IMAGE, WHATSAPP_NUMBER } from "../lib/constants";
-import { firstImage, hotelLocation, stripHtml, titleCase, walkingDistance } from "../lib/format";
+import { DEFAULT_HERO_IMAGE } from "../lib/constants";
+import { drivingDistance, firstImage, hotelLocation, stripHtml, titleCase, walkingDistanceOnly } from "../lib/format";
+import { openZadSupport } from "../lib/support";
 import OptimizedImage from "./OptimizedImage";
 import { useZadApp } from "./ZadAppProvider";
 
@@ -17,28 +18,36 @@ const compactPhotos = (hotel = {}) => {
 	return [...new Set(rows)].slice(0, 5);
 };
 
+const cleanPhone = (value = "") => String(value || "").replace(/[^\d+]/g, "");
+
 export default function SingleHotelView({ hotel = {}, website = {} }) {
 	const { t, isArabic } = useZadApp();
 	const photos = compactPhotos(hotel);
 	const heroImage = photos[0] || firstImage(hotel.hotelPhotos, hotel.roomCountDetails?.[0]?.photos, DEFAULT_HERO_IMAGE);
-	const whatsapp = website?.whatsappNumber || WHATSAPP_NUMBER;
 	const hotelName =
 		isArabic && hotel.hotelName_OtherLanguage
 			? hotel.hotelName_OtherLanguage
 			: titleCase(hotel.hotelName);
-	const distance = walkingDistance(hotel);
+	const walking = walkingDistanceOnly(hotel);
+	const driving = drivingDistance(hotel);
+	const showDrivingDistance = driving && driving !== walking;
+	const phone = website?.phone || "+966 54 779 3608";
+	const supportMessage = isArabic
+		? `\u0645\u0631\u062d\u0628\u0627 \u0632\u0627\u062f \u0644\u0644\u0641\u0646\u0627\u062f\u0642\u060c \u0623\u0631\u063a\u0628 \u0628\u0627\u0644\u0627\u0633\u062a\u0641\u0633\u0627\u0631 \u0639\u0646 ${hotelName}.`
+		: `Hello ZAD Hotels, I am interested in ${hotelName}.`;
 	const about =
 		stripHtml(isArabic ? hotel.aboutHotelArabic || hotel.aboutHotel : hotel.aboutHotel) ||
 		(isArabic
-			? "فندق من مجموعة زاد يوفر خيارات غرف واضحة وخدمة تساعدك على اختيار الإقامة المناسبة."
+			? "\u0641\u0646\u062f\u0642 \u0645\u0646 \u0645\u062c\u0645\u0648\u0639\u0629 \u0632\u0627\u062f \u064a\u0648\u0641\u0631 \u062e\u064a\u0627\u0631\u0627\u062a \u063a\u0631\u0641 \u0648\u0627\u0636\u062d\u0629 \u0648\u062e\u062f\u0645\u0629 \u062a\u0633\u0627\u0639\u062f\u0643 \u0639\u0644\u0649 \u0627\u062e\u062a\u064a\u0627\u0631 \u0627\u0644\u0625\u0642\u0627\u0645\u0629 \u0627\u0644\u0645\u0646\u0627\u0633\u0628\u0629."
 			: "A Zad hotel with clear room choices, guest support, and a stay experience shaped around comfort.");
-	const message = encodeURIComponent(
-		isArabic
-			? `مرحبا زاد للفنادق، أرغب بالاستفسار عن ${hotelName}.`
-			: `Hello ZAD Hotels, I am interested in ${hotelName}.`
-	);
-
 	const roomCount = (hotel.roomCountDetails || []).length;
+	const handleOpenChat = () => {
+		openZadSupport({
+			hotel,
+			hotelName,
+			message: supportMessage,
+		});
+	};
 
 	return (
 		<>
@@ -54,11 +63,21 @@ export default function SingleHotelView({ hotel = {}, website = {} }) {
 							<MapPin size={19} />
 							{hotelLocation(hotel) || hotel.hotelAddress || "Saudi Arabia"}
 						</p>
-						{distance ? (
-							<p className="hotel-distance">
-								<Navigation size={18} />
-								<bdi dir="ltr" className="ltr-value">{distance}</bdi> {isArabic ? "إلى الحرم" : "to Al Haram"}
-							</p>
+						{walking || showDrivingDistance ? (
+							<div className="hotel-distance hotel-distance-options">
+								{walking ? (
+									<span>
+										<Footprints size={18} />
+										<bdi dir="ltr" className="ltr-value">{walking}</bdi> {isArabic ? "\u0645\u0634\u064a\u0627\u064b \u0625\u0644\u0649 \u0627\u0644\u062d\u0631\u0645" : "walk to Al Haram"}
+									</span>
+								) : null}
+								{showDrivingDistance ? (
+									<span>
+										<Car size={18} />
+										<bdi dir="ltr" className="ltr-value">{driving}</bdi> {isArabic ? "\u0628\u0627\u0644\u0633\u064a\u0627\u0631\u0629 \u0625\u0644\u0649 \u0627\u0644\u062d\u0631\u0645" : "drive to Al Haram"}
+									</span>
+								) : null}
+							</div>
 						) : null}
 						<div className="hotel-showcase-points">
 							<span>
@@ -67,11 +86,11 @@ export default function SingleHotelView({ hotel = {}, website = {} }) {
 							</span>
 							<span>
 								<CalendarDays size={17} />
-								{isArabic ? "حجز مرن" : "Flexible booking"}
+								{isArabic ? "\u062d\u062c\u0632 \u0645\u0631\u0646" : "Flexible booking"}
 							</span>
 							<span>
 								<ShieldCheck size={17} />
-								{isArabic ? "دعم زاد للفنادق" : "Zad hotel support"}
+								{isArabic ? "\u062f\u0639\u0645 \u0632\u0627\u062f \u0644\u0644\u0641\u0646\u0627\u062f\u0642" : "Zad hotel support"}
 							</span>
 						</div>
 						<div className="hero-actions">
@@ -79,10 +98,10 @@ export default function SingleHotelView({ hotel = {}, website = {} }) {
 								<BedDouble size={18} />
 								{t("availableRoomTypes")}
 							</a>
-							<a className="btn btn-metal" href={`https://wa.me/${whatsapp}?text=${message}`} target="_blank" rel="noreferrer">
+							<button className="btn btn-metal" type="button" onClick={handleOpenChat}>
 								<MessageCircle size={18} />
 								{t("askToBook")}
-							</a>
+							</button>
 						</div>
 					</div>
 					<div className="hotel-gallery" aria-label={`${hotelName} photos`}>
@@ -112,9 +131,9 @@ export default function SingleHotelView({ hotel = {}, website = {} }) {
 
 			<nav className="hotel-section-nav" dir={isArabic ? "rtl" : "ltr"} aria-label="Hotel sections">
 				<div className="container">
-					<a href="#overview">{isArabic ? "نظرة عامة" : "Overview"}</a>
+					<a href="#overview">{isArabic ? "\u0646\u0638\u0631\u0629 \u0639\u0627\u0645\u0629" : "Overview"}</a>
 					<a href="#rooms">{t("rooms")}</a>
-					<a href="#location">{isArabic ? "الموقع" : "Location"}</a>
+					<a href="#location">{isArabic ? "\u0627\u0644\u0645\u0648\u0642\u0639" : "Location"}</a>
 					<a href="#support">{t("support")}</a>
 				</div>
 			</nav>
@@ -122,19 +141,20 @@ export default function SingleHotelView({ hotel = {}, website = {} }) {
 			<section className="section hotel-overview-section" id="overview">
 				<div className="container hotel-overview-grid" dir={isArabic ? "rtl" : "ltr"}>
 					<article className="premium-card hotel-overview-card">
-						<p className="eyebrow">{isArabic ? "عن الفندق" : "About the hotel"}</p>
+						<p className="eyebrow">{isArabic ? "\u0639\u0646 \u0627\u0644\u0641\u0646\u062f\u0642" : "About the hotel"}</p>
 						<h2>{hotelName}</h2>
 						<p>{about}</p>
 					</article>
 					<aside className="premium-card hotel-facts-card" id="location">
-						<p className="eyebrow">{isArabic ? "الموقع والخدمة" : "Location and service"}</p>
+						<p className="eyebrow">{isArabic ? "\u0627\u0644\u0645\u0648\u0642\u0639 \u0648\u0627\u0644\u062e\u062f\u0645\u0629" : "Location and service"}</p>
 						<strong>{hotelLocation(hotel) || hotel.hotelAddress || "Saudi Arabia"}</strong>
-						{distance ? <span><bdi dir="ltr" className="ltr-value">{distance}</bdi> {isArabic ? "إلى الحرم" : "to Al Haram"}</span> : null}
-						<span dir="ltr" className="ltr-value">{website?.phone || "+966 54 779 3608"}</span>
-						<a className="btn btn-ghost" href={`https://wa.me/${whatsapp}?text=${message}`} target="_blank" rel="noreferrer">
+						{walking ? <span><bdi dir="ltr" className="ltr-value">{walking}</bdi> {isArabic ? "\u0645\u0634\u064a\u0627\u064b \u0625\u0644\u0649 \u0627\u0644\u062d\u0631\u0645" : "walk to Al Haram"}</span> : null}
+						{showDrivingDistance ? <span><bdi dir="ltr" className="ltr-value">{driving}</bdi> {isArabic ? "\u0628\u0627\u0644\u0633\u064a\u0627\u0631\u0629 \u0625\u0644\u0649 \u0627\u0644\u062d\u0631\u0645" : "drive to Al Haram"}</span> : null}
+						<a href={`tel:${cleanPhone(phone)}`} dir="ltr" className="ltr-value">{phone}</a>
+						<button className="btn btn-ghost" type="button" onClick={handleOpenChat}>
 							<MessageCircle size={17} />
 							{t("askToBook")}
-						</a>
+						</button>
 					</aside>
 				</div>
 			</section>
@@ -149,13 +169,15 @@ export default function SingleHotelView({ hotel = {}, website = {} }) {
 						</div>
 					</div>
 					<div className="room-list jannat-room-list">
-						{(hotel.roomCountDetails || []).length ? (
+						{roomCount ? (
 							hotel.roomCountDetails.map((room) => (
-								<RoomCard key={room._id || room.roomType} hotel={hotel} room={room} whatsappNumber={whatsapp} />
+								<RoomCard key={room._id || room.roomType} hotel={hotel} room={room} />
 							))
 						) : (
 							<div className="empty-state">
-								{isArabic ? "لا توجد غرف نشطة متاحة لهذا الفندق حاليا." : "No active rooms are available for this hotel yet."}
+								{isArabic
+									? "\u0644\u0627 \u062a\u0648\u062c\u062f \u063a\u0631\u0641 \u0646\u0634\u0637\u0629 \u0645\u062a\u0627\u062d\u0629 \u0644\u0647\u0630\u0627 \u0627\u0644\u0641\u0646\u062f\u0642 \u062d\u0627\u0644\u064a\u0627."
+									: "No active rooms are available for this hotel yet."}
 							</div>
 						)}
 					</div>
@@ -166,13 +188,13 @@ export default function SingleHotelView({ hotel = {}, website = {} }) {
 				<div className="container support-cta premium-card" dir={isArabic ? "rtl" : "ltr"}>
 					<div>
 						<p className="eyebrow">{t("support")}</p>
-						<h2>{isArabic ? "تحتاج مساعدة في اختيار الغرفة؟" : "Need help choosing the right room?"}</h2>
-						<p>{isArabic ? "فريق زاد للفنادق يساعدك حسب الفندق والتواريخ ونوع الغرفة المناسب." : "Zad Hotels support can help with hotel-specific room, date, and booking questions."}</p>
+						<h2>{isArabic ? "\u062a\u062d\u062a\u0627\u062c \u0645\u0633\u0627\u0639\u062f\u0629 \u0641\u064a \u0627\u062e\u062a\u064a\u0627\u0631 \u0627\u0644\u063a\u0631\u0641\u0629\u061f" : "Need help choosing the right room?"}</h2>
+						<p>{isArabic ? "\u0641\u0631\u064a\u0642 \u0632\u0627\u062f \u0644\u0644\u0641\u0646\u0627\u062f\u0642 \u064a\u0633\u0627\u0639\u062f\u0643 \u062d\u0633\u0628 \u0627\u0644\u0641\u0646\u062f\u0642 \u0648\u0627\u0644\u062a\u0648\u0627\u0631\u064a\u062e \u0648\u0646\u0648\u0639 \u0627\u0644\u063a\u0631\u0641\u0629 \u0627\u0644\u0645\u0646\u0627\u0633\u0628." : "Zad Hotels support can help with hotel-specific room, date, and booking questions."}</p>
 					</div>
-					<a className="btn btn-primary" href={`https://wa.me/${whatsapp}?text=${message}`} target="_blank" rel="noreferrer">
+					<button className="btn btn-primary" type="button" onClick={handleOpenChat}>
 						<MessageCircle size={18} />
 						{t("askToBook")}
-					</a>
+					</button>
 				</div>
 			</section>
 		</>
