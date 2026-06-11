@@ -65,9 +65,10 @@ const nightsBetween = (start, end) => {
 	return Math.max(1, Number.isFinite(diff) ? diff : 1);
 };
 
-export function ZadAppProvider({ children }) {
+export function ZadAppProvider({ children, initialLanguage = "en" }) {
 	const pathname = usePathname();
-	const [language, setLanguageState] = useState("en");
+	const normalizedInitialLanguage = normalizeLanguage(initialLanguage) || "en";
+	const [language, setLanguageState] = useState(normalizedInitialLanguage);
 	const [languageReady, setLanguageReady] = useState(false);
 	const [syncLanguageUrl, setSyncLanguageUrl] = useState(false);
 	const [cart, setCart] = useState([]);
@@ -77,8 +78,8 @@ export function ZadAppProvider({ children }) {
 		const urlLanguage = languageFromSearch(window.location.search);
 		const storedLanguage = window.localStorage.getItem(LANGUAGE_KEY);
 		const savedLanguage = normalizeLanguage(storedLanguage);
-		const initialLanguage = urlLanguage || savedLanguage || "en";
-		setLanguageState(initialLanguage);
+		const nextLanguage = urlLanguage || savedLanguage || normalizedInitialLanguage;
+		setLanguageState(nextLanguage);
 		setSyncLanguageUrl(Boolean(urlLanguage || savedLanguage === "ar"));
 		setLanguageReady(true);
 		try {
@@ -87,7 +88,7 @@ export function ZadAppProvider({ children }) {
 		} catch (_error) {
 			setCart([]);
 		}
-	}, []);
+	}, [normalizedInitialLanguage]);
 
 	useEffect(() => {
 		if (!languageReady) return;

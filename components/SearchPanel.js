@@ -2,16 +2,24 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, DatePicker, InputNumber, Select } from "antd";
-import dayjs from "dayjs";
 import { CalendarDays, Search, Users } from "lucide-react";
 import { roomTypeLabel, titleCase } from "../lib/format";
 import { useZadApp } from "./ZadAppProvider";
 
-const dateOffset = (days) => dayjs().add(days, "day").format("YYYY-MM-DD");
-const parseDate = (value, fallbackDays) => {
-	const parsed = dayjs(value || dateOffset(fallbackDays));
-	return parsed.isValid() ? parsed : dayjs(dateOffset(fallbackDays));
+const padDate = (value) => String(value).padStart(2, "0");
+const formatDate = (date) =>
+	`${date.getFullYear()}-${padDate(date.getMonth() + 1)}-${padDate(date.getDate())}`;
+const dateOffset = (days) => {
+	const date = new Date();
+	date.setDate(date.getDate() + days);
+	return formatDate(date);
+};
+const isDateValue = (value = "") => /^\d{4}-\d{2}-\d{2}$/.test(String(value));
+const parseDate = (value, fallbackDays) => (isDateValue(value) ? value : dateOffset(fallbackDays));
+const addDays = (value, days) => {
+	const date = new Date(`${parseDate(value, 1)}T00:00:00`);
+	date.setDate(date.getDate() + days);
+	return formatDate(date);
 };
 
 export default function SearchPanel({ hotels = [], roomTypes = [], compact = false, defaults = {} }) {
@@ -28,8 +36,8 @@ export default function SearchPanel({ hotels = [], roomTypes = [], compact = fal
 		selectDestination: isArabic
 			? "\u0627\u062e\u062a\u0631 \u0648\u062c\u0647\u062a\u0643"
 			: "Choose destination",
-		selectDate: isArabic ? "\u0627\u062e\u062a\u0631 \u0627\u0644\u062a\u0627\u0631\u064a\u062e" : "Select date",
 	};
+
 	const destinations = useMemo(() => {
 		const values = new Set([{ label: t("all"), value: "All" }]);
 		const seen = new Set(["All"]);
@@ -50,38 +58,28 @@ export default function SearchPanel({ hotels = [], roomTypes = [], compact = fal
 	const [checkOut, setCheckOut] = useState(() => {
 		const start = parseDate(defaults.startDate, 1);
 		const end = parseDate(defaults.endDate, 4);
-		return end.isAfter(start, "day") ? end : start.add(1, "day");
+		return end > start ? end : addDays(start, 1);
 	});
 	const [roomType, setRoomType] = useState(defaults.roomType || "all");
 	const [adults, setAdults] = useState(Number(defaults.adults || 1));
 	const [children] = useState(Number(defaults.children || 0));
 
-	const handleCheckInChange = (value) => {
-		const nextCheckIn = value || parseDate(null, 1);
+	const handleCheckInChange = (event) => {
+		const nextCheckIn = parseDate(event.target.value, 1);
 		setCheckIn(nextCheckIn);
-		setCheckOut((current) =>
-			current && current.isAfter(nextCheckIn, "day")
-				? current
-				: nextCheckIn.add(1, "day")
-		);
+		setCheckOut((current) => (current > nextCheckIn ? current : addDays(nextCheckIn, 1)));
 	};
 
-	const handleCheckOutChange = (value) => {
-		const minCheckout = checkIn.add(1, "day");
-		setCheckOut(value && value.isAfter(checkIn, "day") ? value : minCheckout);
+	const handleCheckOutChange = (event) => {
+		const minCheckout = addDays(checkIn, 1);
+		const value = parseDate(event.target.value, 4);
+		setCheckOut(value > checkIn ? value : minCheckout);
 	};
-
-	const disabledCheckInDate = (current) => current && current < dayjs().endOf("day");
-	const disabledCheckOutDate = (current) =>
-		current && current < checkIn.add(1, "day").startOf("day");
 
 	const submit = (event) => {
 		event.preventDefault();
-		const startDate = checkIn?.format("YYYY-MM-DD") || dateOffset(1);
-		const endDate =
-			checkOut && checkOut.isAfter(checkIn, "day")
-				? checkOut.format("YYYY-MM-DD")
-				: checkIn.add(1, "day").format("YYYY-MM-DD");
+		const startDate = parseDate(checkIn, 1);
+		const endDate = checkOut > checkIn ? checkOut : addDays(checkIn, 1);
 		const params = new URLSearchParams({
 			destination,
 			startDate,
@@ -108,68 +106,83 @@ export default function SearchPanel({ hotels = [], roomTypes = [], compact = fal
 			<div className="search-panel-row">
 				<div className="search-field destination-field">
 					<label>{labels.city}</label>
-					<Select
+					<select
+						className="search-control native-select"
 						value={destination}
-						options={destinations}
-						onChange={setDestination}
-						placeholder={labels.selectDestination}
-						popupClassName="zad-search-dropdown"
-					/>
+						onChange={(event) => setDestination(event.target.value)}
+						aria-label={labels.selectDestination}
+					>
+						{destinations.map((option) => (
+							<option key={option.value} value={option.value}>
+								{option.label}
+							</option>
+						))}
+					</select>
 				</div>
 				<div className="search-field">
 					<label>{labels.from}</label>
-					<DatePicker
-						value={checkIn}
-						onChange={handleCheckInChange}
-						disabledDate={disabledCheckInDate}
-						suffixIcon={<CalendarDays size={16} />}
-						allowClear={false}
-						inputReadOnly
-						format="YYYY-MM-DD"
-						placeholder={labels.selectDate}
-					/>
+					<div className="search-control date-native-control">
+						<CalendarDays size={16} />
+						<bdi dir="ltr">{checkIn}</bdi>
+						<input
+							type="date"
+							value={checkIn}
+							min={dateOffset(0)}
+							onChange={handleCheckInChange}
+							aria-label={labels.from}
+						/>
+					</div>
 				</div>
 				<div className="search-field">
 					<label>{labels.to}</label>
-					<DatePicker
-						value={checkOut}
-						onChange={handleCheckOutChange}
-						disabledDate={disabledCheckOutDate}
-						suffixIcon={<CalendarDays size={16} />}
-						allowClear={false}
-						inputReadOnly
-						format="YYYY-MM-DD"
-						placeholder={labels.selectDate}
-					/>
+					<div className="search-control date-native-control">
+						<CalendarDays size={16} />
+						<bdi dir="ltr">{checkOut}</bdi>
+						<input
+							type="date"
+							value={checkOut}
+							min={addDays(checkIn, 1)}
+							onChange={handleCheckOutChange}
+							aria-label={labels.to}
+						/>
+					</div>
 				</div>
 			</div>
 			<div className="search-panel-row">
 				<div className="search-field">
 					<label>{t("roomType")}</label>
-					<Select
+					<select
+						className="search-control native-select"
 						value={roomType}
-						options={roomOptions}
-						onChange={setRoomType}
-						popupClassName="zad-search-dropdown"
-					/>
+						onChange={(event) => setRoomType(event.target.value)}
+					>
+						{roomOptions.map((option) => (
+							<option key={option.value} value={option.value}>
+								{option.label}
+							</option>
+						))}
+					</select>
 				</div>
 				<div className="search-field">
 					<label>{labels.guests}</label>
-					<InputNumber
-						min={1}
-						max={20}
-						value={adults}
-						onChange={(value) => setAdults(Number(value || 1))}
-						prefix={<Users size={15} />}
-						controls={false}
-						dir="ltr"
-						className="guest-input"
-					/>
+					<div className="search-control guest-native-control">
+						<Users size={15} />
+						<input
+							type="number"
+							min="1"
+							max="20"
+							value={adults}
+							onChange={(event) => setAdults(Number(event.target.value || 1))}
+							dir="ltr"
+							aria-label={labels.guests}
+						/>
+					</div>
 				</div>
 				<div className="search-submit-wrap">
-					<Button type="primary" htmlType="submit" size="large" icon={<Search size={18} />} className="search-submit">
+					<button type="submit" className="search-submit">
+						<Search size={18} />
 						{t("search")}
-					</Button>
+					</button>
 				</div>
 			</div>
 		</form>

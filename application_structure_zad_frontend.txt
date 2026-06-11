@@ -772,6 +772,13 @@ PageSpeed Image Delivery And Asset Protection Pass - 2026-06-10
   - Image containers keep the same aspect ratios and visual sizing.
   - Homepage, hotel listing, rooms listing, contact page, cart, checkout, footer, and single-hotel gallery keep the same design structure.
   - Arabic mobile search room-type row was slightly adjusted so long room-type labels no longer collide with the guest field.
+  - SearchPanel now uses stable native controls instead of Ant Design controls for the above-the-fold search form.
+    - This keeps the same URL params and visual design.
+    - Dates still display as YYYY-MM-DD while the hidden native date input opens the browser date picker.
+    - This reduces hydration layout shift and above-the-fold JavaScript/CSS pressure.
+  - D:\JannatBooking\zad_ssr\proxy.js passes the requested language to the server through x-zad-language.
+  - D:\JannatBooking\zad_ssr\app\layout.js renders the first response with the correct html lang/dir for shared ?lang=ar links.
+  - D:\JannatBooking\zad_ssr\components\ZadAppProvider.js accepts initialLanguage so Arabic pages do not first paint in English/LTR and then flip to Arabic/RTL.
 - Important limitation:
   - Public browser images can never be made impossible to capture or screenshot.
   - This pass protects against normal cross-site hotlinking and search image indexing, and hides old Jannat asset source URLs from rendered image src values.
@@ -791,6 +798,10 @@ PageSpeed Image Delivery And Asset Protection Pass - 2026-06-10
     - no raw jannatbooking.com/assets image src values
     - max optimizer candidate width was 1920
     - console errors were clean
+  - CLS-specific local browser checks after the SearchPanel/native-control refinement:
+    - /?lang=ar desktop CLS: 0
+    - /our-hotels?lang=ar mobile CLS: 0.0783
+    - /rooms?lang=ar mobile CLS: 0.003
 
 Production Deployment Result - PageSpeed/Image Protection Pass - 2026-06-10
 - GitHub push completed:

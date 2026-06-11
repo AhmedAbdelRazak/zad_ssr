@@ -30,6 +30,19 @@ const readScheme = (request) => {
 	return "";
 };
 
+const requestHeadersWithLanguage = (request) => {
+	const headers = new Headers(request.headers);
+	const rawLanguage =
+		request.nextUrl.searchParams.get("lang") ||
+		request.nextUrl.searchParams.get("language") ||
+		request.nextUrl.searchParams.get("locale") ||
+		request.cookies.get("zadHotelsLanguage")?.value ||
+		"";
+	const language = ["ar", "ara", "arabic"].includes(String(rawLanguage).toLowerCase()) ? "ar" : "en";
+	headers.set("x-zad-language", language);
+	return headers;
+};
+
 const isProtectedImagePath = (pathname = "") =>
 	pathname.startsWith("/_next/image") || pathname.startsWith("/assets/");
 
@@ -54,9 +67,10 @@ export function proxy(request) {
 	const host = String(request.headers.get("host") || "")
 		.split(":")[0]
 		.toLowerCase();
+	const requestHeaders = requestHeadersWithLanguage(request);
 
 	if (host !== PUBLIC_HOST) {
-		return NextResponse.next();
+		return NextResponse.next({ request: { headers: requestHeaders } });
 	}
 
 	if (readScheme(request) === "http") {
@@ -77,7 +91,7 @@ export function proxy(request) {
 		});
 	}
 
-	const response = NextResponse.next();
+	const response = NextResponse.next({ request: { headers: requestHeaders } });
 	response.headers.set("Strict-Transport-Security", HSTS_VALUE);
 	if (isProtectedImagePath(request.nextUrl.pathname)) {
 		response.headers.set("Cross-Origin-Resource-Policy", "same-origin");

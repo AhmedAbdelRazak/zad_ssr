@@ -1,7 +1,10 @@
 import "./globals.css";
 import "antd/dist/reset.css";
+import { headers } from "next/headers";
 import { getHotels, getWebsite } from "../lib/api";
 import { BRAND_NAME, BRAND_URL, DEFAULT_HERO_IMAGE } from "../lib/constants";
+import { LANGUAGES } from "../lib/i18n";
+import { normalizeLanguage } from "../lib/language";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import SupportWidget from "../components/SupportWidget";
@@ -38,6 +41,9 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }) {
+	const requestHeaders = await headers();
+	const initialLanguage = normalizeLanguage(requestHeaders.get("x-zad-language")) || "en";
+	const initialDirection = LANGUAGES[initialLanguage]?.dir || "ltr";
 	const [website, hotels] = await Promise.all([getWebsite(), getHotels()]);
 
 	const jsonLd = [
@@ -63,13 +69,13 @@ export default async function RootLayout({ children }) {
 	];
 
 	return (
-		<html lang="en" suppressHydrationWarning>
+		<html lang={initialLanguage} dir={initialDirection} suppressHydrationWarning>
 			<body>
 				<script
 					type="application/ld+json"
 					dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
 				/>
-				<ZadAppProvider>
+				<ZadAppProvider initialLanguage={initialLanguage}>
 					<Header website={website} />
 					<main>{children}</main>
 					<Footer website={website} hotels={hotels} />

@@ -531,6 +531,7 @@ html[dir="rtl"] .hero-controls {
 	z-index: 4;
 	max-width: 920px;
 	margin: 0 auto;
+	min-height: 216px;
 	display: flex;
 	flex-direction: column;
 	gap: 14px;
@@ -601,7 +602,8 @@ html[dir="rtl"] .hero-controls {
 .search-field .ant-select,
 .search-field .ant-picker,
 .search-field .ant-input-number,
-.search-field .ant-input {
+.search-field .ant-input,
+.search-field .search-control {
 	width: 100%;
 }
 
@@ -622,6 +624,7 @@ html[dir="rtl"] .search-panel .search-field label {
 .search-field .ant-picker,
 .search-field .ant-input-number,
 .search-field .ant-input,
+.search-field .search-control,
 .field input,
 .field select,
 .field textarea {
@@ -633,7 +636,8 @@ html[dir="rtl"] .search-panel .search-field label {
 
 .search-panel .ant-select-selector,
 .search-panel .ant-picker,
-.search-panel .ant-input-number {
+.search-panel .ant-input-number,
+.search-panel .search-control {
 	min-height: 42px;
 	border: 1px solid rgba(36, 84, 125, 0.12) !important;
 	background:
@@ -644,12 +648,16 @@ html[dir="rtl"] .search-panel .search-field label {
 		0 8px 18px rgba(36, 84, 125, 0.07);
 }
 
-.search-panel .ant-picker {
+.search-panel .ant-picker,
+.date-native-control,
+.guest-native-control {
 	padding-inline: 10px;
 }
 
 .search-panel .ant-picker-input input,
-.search-panel .guest-input input {
+.search-panel .guest-input input,
+.date-native-control bdi,
+.guest-native-control input {
 	direction: ltr;
 	text-align: center;
 	font-weight: 850;
@@ -657,14 +665,59 @@ html[dir="rtl"] .search-panel .search-field label {
 }
 
 .search-panel .ant-select-selection-item,
-.search-panel .ant-select-selection-placeholder {
+.search-panel .ant-select-selection-placeholder,
+.native-select {
 	font-weight: 850;
 	color: #07131e;
 }
 
-.search-panel .ant-input-number-prefix {
+.search-panel .ant-input-number-prefix,
+.guest-native-control svg,
+.date-native-control svg {
 	color: var(--zad-green);
 	margin-inline-end: 6px;
+}
+
+.native-select {
+	appearance: none;
+	padding: 0 34px 0 12px;
+	cursor: pointer;
+}
+
+html[dir="rtl"] .native-select {
+	padding: 0 12px 0 34px;
+}
+
+.date-native-control,
+.guest-native-control {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 7px;
+	overflow: hidden;
+}
+
+.date-native-control input[type="date"] {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	opacity: 0;
+	cursor: pointer;
+}
+
+.date-native-control bdi,
+.guest-native-control input {
+	position: relative;
+	z-index: 1;
+}
+
+.guest-native-control input {
+	width: 100%;
+	border: 0;
+	background: transparent;
+	outline: none;
 }
 
 .search-submit-wrap {
@@ -687,7 +740,13 @@ html[dir="rtl"] .search-panel .search-field label {
 	border: 1px solid rgba(255, 255, 255, 0.24) !important;
 	background: linear-gradient(135deg, var(--zad-purple), var(--zad-blue) 48%, var(--zad-green)) !important;
 	box-shadow: 0 12px 22px rgba(36, 84, 125, 0.18);
+	color: #ffffff;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
 	font-weight: 950;
+	cursor: pointer;
 }
 
 .search-submit:hover {
@@ -2378,6 +2437,7 @@ html[dir="rtl"] .summary-count {
 	.search-panel .ant-select-selector,
 	.search-panel .ant-picker,
 	.search-panel .ant-input-number,
+	.search-panel .search-control,
 	.search-submit {
 		min-height: 40px;
 	}
@@ -2533,6 +2593,7 @@ html[dir="rtl"] .summary-count {
 
 	.search-panel {
 		width: min(100%, 420px);
+		min-height: 242px;
 		padding: 10px;
 	}
 
@@ -2560,12 +2621,17 @@ html[dir="rtl"] .summary-count {
 		font-size: 11px !important;
 	}
 
-	.search-panel .ant-picker {
+	.search-panel .ant-picker,
+	.date-native-control,
+	.guest-native-control {
 		padding-inline: 6px;
 	}
 
 	.search-panel .ant-picker-input input,
-	.search-panel .guest-input input {
+	.search-panel .guest-input input,
+	.date-native-control bdi,
+	.guest-native-control input,
+	.native-select {
 		font-size: 11px;
 	}
 
