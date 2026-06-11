@@ -1004,3 +1004,32 @@ Zad Hotel Card Interaction Pass - 2026-06-10
     - Single-hotel and room ask-to-book buttons opened the same support widget with hotel context.
     - Walking and driving distance pills rendered on hotel cards and the single-hotel hero.
     - No browser console errors were reported in the checked flows.
+
+Production Deployment Result - Zad Hotel Card Interaction Pass - 2026-06-10
+- GitHub push completed:
+  - zad_ssr main commit:
+    40df795 - Improve Zad hotel chat interactions
+- Production server pull/build completed on ssh jannat:
+  - /home/ahmedadmin/Hotels/zad_ssr fast-forwarded from 7ff1ae1 to 40df795.
+  - npm ci completed with 0 vulnerabilities.
+  - npm run build passed.
+  - zad-ssr restarted through PM2 and stayed online.
+  - PM2 process list was saved.
+- Live HTTP verification:
+  - https://zadhotels.jannatbooking.com/our-hotels?lang=ar returned 200.
+  - https://zadhotels.jannatbooking.com/single-hotel/zad-al-sad?lang=ar returned 200.
+  - Both responses included Cloudflare HTTPS/HSTS headers.
+- Live browser verification:
+  - Playwright checked:
+    - /our-hotels?lang=ar desktop
+    - /single-hotel/zad-al-sad?lang=ar desktop
+  - Results:
+    - Show more stayed on /our-hotels?lang=ar and expanded the first card from 15 to 20 amenities.
+    - Chat With Zad opened the support widget with the selected hotel ID.
+    - The single-hotel hero ask-to-book button opened the same support widget with the selected hotel and a prefilled Arabic message.
+    - Direct single-hotel and room inquiry buttons had 0 wa.me links; they now use in-app chat.
+    - Walking and driving distance indicators rendered on both hotel cards and the single-hotel hero.
+    - No browser console errors were reported.
+- PM2/log health:
+  - zad-ssr PM2 status was online.
+  - zad-ssr error log had no new entries during verification.
