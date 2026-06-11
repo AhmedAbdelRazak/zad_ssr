@@ -524,3 +524,43 @@ Production Result - Zad Asset Delivery And Image Protection - 2026-06-10
   - Zad /_next/image optimized route returned 200 for a hotel image.
   - Cross-site image hotlink simulation returned 403.
 - No hotels_backend deployment was required for this item.
+
+Zad Client Auth Backend Notes - 2026-06-10
+- Updated backend files:
+  - D:\JannatBooking\hotels_backend\controllers\zadcontroller.js
+  - D:\JannatBooking\hotels_backend\routes\zad.js
+- New public Zad-scoped auth routes:
+  - POST /api/zad/auth/signup
+    - Creates a regular client/guest user only.
+    - Uses role 0, roleDescription "client", roles [0], and roleDescriptions ["client"].
+    - Requires name, email, phone, and a password of at least 6 characters.
+    - Rejects duplicate email or phone.
+  - POST /api/zad/auth/signin
+    - Signs in by email or phone.
+    - Does not use the older global signin route that logs credentials in development output.
+    - Returns the same simple { token, user } shape needed by the Zad SSR frontend.
+  - POST /api/zad/auth/google-login
+    - Uses google-auth-library and GOOGLE_CLIENT_ID on the backend.
+    - Creates or signs in a role-0 client account.
+    - Avoids the older global /google-login route, which contains legacy welcome-email text from an unrelated old project.
+- Session behavior:
+  - The backend returns a JWT and a safe public user object.
+  - It also sets the t cookie for compatibility, but Zad SSR stores its own guest session in the frontend under zadHotelsAuth.
+  - The public user object only includes:
+    - _id
+    - name
+    - email
+    - phone
+    - role
+    - roleDescription
+    - activeUser
+- Support case close behavior:
+  - No new backend route was required for closing a Zad chat.
+  - The existing public support case route already supports:
+    - PUT /api/support-cases/client/:caseId
+    - body: { caseStatus: "closed" }
+  - That path sets caseStatus to closed, closedAt, closedBy="client", pauses AI response, and emits closeCase through Socket.IO.
+- Verification:
+  - node --check passed for:
+    - hotels_backend/controllers/zadcontroller.js
+    - hotels_backend/routes/zad.js

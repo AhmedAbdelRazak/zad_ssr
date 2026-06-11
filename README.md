@@ -19,6 +19,9 @@ The public site reads only the Zad backend endpoints:
 - `/api/zad/single-hotel/:slug`
 - `/api/zad/room-query-list/:query`
 - `/api/zad/hotels/active-with-deals`
+- `/api/zad/auth/signin`
+- `/api/zad/auth/signup`
+- `/api/zad/auth/google-login`
 
 The backend owns the hotel scope for `mrgamal@xhoteltest.com`.
 

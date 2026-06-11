@@ -10,6 +10,7 @@ import { addLanguageToHref, languageFromSearch, normalizeLanguage } from "../lib
 const ZadAppContext = createContext(null);
 const LANGUAGE_KEY = "zadHotelsLanguage";
 const CART_KEY = "zadHotelsCart";
+const AUTH_KEY = "zadHotelsAuth";
 
 const dateOffset = (days) => {
 	const date = new Date();
@@ -73,6 +74,7 @@ export function ZadAppProvider({ children, initialLanguage = "en" }) {
 	const [syncLanguageUrl, setSyncLanguageUrl] = useState(false);
 	const [cart, setCart] = useState([]);
 	const [cartOpen, setCartOpen] = useState(false);
+	const [auth, setAuth] = useState(null);
 
 	useEffect(() => {
 		const urlLanguage = languageFromSearch(window.location.search);
@@ -87,6 +89,12 @@ export function ZadAppProvider({ children, initialLanguage = "en" }) {
 			if (Array.isArray(storedCart)) setCart(storedCart.map(normalizeItem));
 		} catch (_error) {
 			setCart([]);
+		}
+		try {
+			const storedAuth = JSON.parse(window.localStorage.getItem(AUTH_KEY) || "null");
+			if (storedAuth?.token && storedAuth?.user?._id) setAuth(storedAuth);
+		} catch (_error) {
+			setAuth(null);
 		}
 	}, [normalizedInitialLanguage]);
 
@@ -119,6 +127,15 @@ export function ZadAppProvider({ children, initialLanguage = "en" }) {
 	useEffect(() => {
 		window.localStorage.setItem(CART_KEY, JSON.stringify(cart));
 	}, [cart]);
+
+	useEffect(() => {
+		if (!languageReady) return;
+		if (auth?.token && auth?.user?._id) {
+			window.localStorage.setItem(AUTH_KEY, JSON.stringify(auth));
+		} else {
+			window.localStorage.removeItem(AUTH_KEY);
+		}
+	}, [auth, languageReady]);
 
 	const setLanguage = useCallback((nextLanguage) => {
 		setSyncLanguageUrl(true);
@@ -169,6 +186,19 @@ export function ZadAppProvider({ children, initialLanguage = "en" }) {
 
 	const clearCart = useCallback(() => setCart([]), []);
 
+	const setAuthSession = useCallback((session) => {
+		if (session?.token && session?.user?._id) {
+			setAuth({
+				token: session.token,
+				user: session.user,
+			});
+		}
+	}, []);
+
+	const signOut = useCallback(() => {
+		setAuth(null);
+	}, []);
+
 	const totals = useMemo(() => {
 		return {
 			rooms: cartRoomsCount(cart),
@@ -193,6 +223,10 @@ export function ZadAppProvider({ children, initialLanguage = "en" }) {
 			totals,
 			cartOpen,
 			setCartOpen,
+			auth,
+			isSignedIn: Boolean(auth?.token && auth?.user?._id),
+			setAuthSession,
+			signOut,
 			addToCart,
 			updateCartItem,
 			removeCartItem,
@@ -201,13 +235,16 @@ export function ZadAppProvider({ children, initialLanguage = "en" }) {
 		}),
 		[
 			addToCart,
+			auth,
 			cart,
 			cartOpen,
 			clearCart,
 			hrefWithLanguage,
 			language,
 			removeCartItem,
+			setAuthSession,
 			setLanguage,
+			signOut,
 			toggleLanguage,
 			totals,
 			updateCartItem,

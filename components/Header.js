@@ -10,6 +10,8 @@ import {
 	Globe2,
 	Home,
 	Info,
+	LogIn,
+	LogOut,
 	Mail,
 	Menu,
 	MessageCircle,
@@ -17,6 +19,8 @@ import {
 	Search,
 	ShoppingBag,
 	Sparkles,
+	UserPlus,
+	UserRound,
 	X,
 } from "lucide-react";
 import { useState } from "react";
@@ -41,11 +45,23 @@ const cleanPhone = (value = "") => String(value || "").replace(/[^\d+]/g, "");
 export default function Header({ website = {} }) {
 	const pathname = usePathname();
 	const [mobileOpen, setMobileOpen] = useState(false);
-	const { language, isArabic, t, toggleLanguage, totals, setCartOpen, hrefWithLanguage } = useZadApp();
+	const {
+		language,
+		isArabic,
+		t,
+		toggleLanguage,
+		totals,
+		setCartOpen,
+		hrefWithLanguage,
+		auth,
+		isSignedIn,
+		signOut,
+	} = useZadApp();
 	const logo = website?.janatLogo?.url || DEFAULT_LOGO;
 	const email = website?.officialEmail || OFFICIAL_EMAIL;
 	const phone = website?.phone || PHONE_DISPLAY;
 	const whatsapp = website?.whatsappNumber || WHATSAPP_NUMBER;
+	const accountName = auth?.user?.name || auth?.user?.email || t("account");
 
 	const menu = (
 		<nav className="main-nav" aria-label="Main navigation">
@@ -98,6 +114,28 @@ export default function Header({ website = {} }) {
 					</Link>
 					{menu}
 					<div className="header-actions">
+						{isSignedIn ? (
+							<div className="desktop-auth-state" aria-label={t("account")}>
+								<span>
+									<UserRound size={16} />
+									<b>{accountName}</b>
+								</span>
+								<button type="button" onClick={signOut} aria-label={t("signout")}>
+									<LogOut size={16} />
+								</button>
+							</div>
+						) : (
+							<div className="desktop-auth-links">
+								<Link href={hrefWithLanguage("/signin")} className="auth-link signin">
+									<LogIn size={16} />
+									{t("signin")}
+								</Link>
+								<Link href={hrefWithLanguage("/signup")} className="auth-link signup">
+									<UserPlus size={16} />
+									{t("signup")}
+								</Link>
+							</div>
+						)}
 						<Link className="icon-action" href={hrefWithLanguage("/rooms")} aria-label={t("searchRooms")}>
 							<Search size={18} />
 						</Link>
@@ -140,6 +178,35 @@ export default function Header({ website = {} }) {
 							</Link>
 						);
 					})}
+					{isSignedIn ? (
+						<div className="mobile-auth-panel signed-in">
+							<span>
+								<UserRound size={18} />
+								{t("signedInAs")} <b>{accountName}</b>
+							</span>
+							<button
+								type="button"
+								onClick={() => {
+									signOut();
+									setMobileOpen(false);
+								}}
+							>
+								<LogOut size={18} />
+								{t("signout")}
+							</button>
+						</div>
+					) : (
+						<div className="mobile-auth-panel">
+							<Link href={hrefWithLanguage("/signin")} onClick={() => setMobileOpen(false)}>
+								<LogIn size={18} />
+								{t("signin")}
+							</Link>
+							<Link href={hrefWithLanguage("/signup")} onClick={() => setMobileOpen(false)}>
+								<UserPlus size={18} />
+								{t("signup")}
+							</Link>
+						</div>
+					)}
 					<button type="button" onClick={toggleLanguage} className="mobile-line-button">
 						<Globe2 size={18} />
 						{t("language")}

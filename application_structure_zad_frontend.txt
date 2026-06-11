@@ -858,3 +858,63 @@ Production Deployment Result - Search CLS Refinement - 2026-06-10
   - /_next/image?url=%2Fassets%2Fjanat%2F1756890718924.jpg&w=750&q=78 returned 200.
   - The same optimized image endpoint with an outside Referer returned 403.
   - zad-ssr PM2 logs showed clean Next.js startup and no error log output.
+
+Zad Client Auth, Mobile Cards, And Chat Close Notes - 2026-06-10
+- New guest-facing account pages:
+  - D:\JannatBooking\zad_ssr\app\signin\page.js
+  - D:\JannatBooking\zad_ssr\app\signup\page.js
+  - D:\JannatBooking\zad_ssr\components\AuthPageClient.js
+- Purpose:
+  - These pages are for regular Zad clients/guests, not hotel owners, hotel staff, or platform admins.
+  - Signin and signup use the Zad-scoped backend auth endpoints:
+    - POST /api/zad/auth/signin
+    - POST /api/zad/auth/signup
+    - POST /api/zad/auth/google-login
+- Google sign-in/sign-up:
+  - The UI includes a Google option on both signin and signup.
+  - It uses Google Identity Services when NEXT_PUBLIC_GOOGLE_CLIENT_ID is configured.
+  - If the public Google client ID is not configured, the button stays polished and shows a setup message instead of breaking.
+  - D:\JannatBooking\zad_ssr\.env.example now documents:
+    - NEXT_PUBLIC_GOOGLE_CLIENT_ID
+- Header and mobile drawer:
+  - D:\JannatBooking\zad_ssr\components\Header.js now shows Sign in / Sign up in the desktop top navbar.
+  - On mobile, the same actions are shown inside the side drawer near the top of the menu.
+  - After a client signs in or signs up, the header shows a compact account state and a sign-out button.
+  - Auth state is stored only for Zad in localStorage under zadHotelsAuth.
+- Provider/API files updated:
+  - D:\JannatBooking\zad_ssr\components\ZadAppProvider.js
+    - Stores and exposes Zad guest auth state.
+  - D:\JannatBooking\zad_ssr\lib\api.js
+    - Adds Zad client auth helpers.
+    - Adds a closePublicSupportCase helper that uses the existing public support-case update route.
+  - D:\JannatBooking\zad_ssr\lib\i18n.js
+    - Adds supplemental English/Arabic labels for auth and chat close.
+- Support chat close:
+  - D:\JannatBooking\zad_ssr\components\SupportWidget.js now has an explicit End chat action.
+  - The X button still only hides/minimizes the panel.
+  - End chat calls:
+    - PUT /api/support-cases/client/:caseId
+    - body: { caseStatus: "closed" }
+  - The widget also listens for Socket.IO closeCase events and resets the visible chat state when a case is closed.
+- Mobile hotel-card improvement:
+  - D:\JannatBooking\zad_ssr\app\globals.css keeps hotel amenity icons in a two-column grid on small phones.
+  - The first-eight amenity limit remains in place so mobile hotel cards stay compact.
+- Local verification:
+  - node --check passed for:
+    - hotels_backend/controllers/zadcontroller.js
+    - hotels_backend/routes/zad.js
+  - npm run build passed for zad_ssr.
+  - Playwright checked:
+    - /?lang=en desktop
+    - /signin?lang=en desktop
+    - /signup?lang=ar desktop
+    - /our-hotels?lang=ar mobile
+    - /signin?lang=ar mobile
+  - Results:
+    - no horizontal overflow on checked desktop or mobile pages
+    - no console errors
+    - Arabic auth pages render as RTL on first load
+    - desktop navbar shows two auth links when signed out
+    - mobile drawer shows Sign in / Sign up
+    - mobile hotel-card amenities render as two columns
+    - signup submit button is visible in the first desktop viewport at 1366x820

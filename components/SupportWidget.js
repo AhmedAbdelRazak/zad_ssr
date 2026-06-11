@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { MessageCircle, Send, X } from "lucide-react";
-import { apiUrl, socketBaseUrl } from "../lib/api";
+import { apiUrl, closePublicSupportCase, socketBaseUrl } from "../lib/api";
 import { BRAND_NAME, CONTACT_EMAIL } from "../lib/constants";
 import { titleCase } from "../lib/format";
 import { useZadApp } from "./ZadAppProvider";
@@ -27,6 +27,7 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 	const [reply, setReply] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
+	const [notice, setNotice] = useState("");
 	const [typingStatus, setTypingStatus] = useState("");
 	const socketRef = useRef(null);
 	const typingTimerRef = useRef(null);
@@ -38,6 +39,14 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 		[form.hotelId, hotels]
 	);
 
+	const resetCaseState = useCallback(() => {
+		window.clearTimeout(typingTimerRef.current);
+		setCaseId("");
+		setMessages([]);
+		setReply("");
+		setTypingStatus("");
+	}, []);
+
 	useEffect(() => {
 		if (!caseId || !open) return undefined;
 		let cancelled = false;
@@ -45,6 +54,11 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 			try {
 				const res = await fetch(apiUrl(`/support-cases/client/${caseId}`));
 				const data = await res.json();
+				if (!cancelled && data?.caseStatus === "closed") {
+					resetCaseState();
+					setNotice(t("chatClosed"));
+					return;
+				}
 				if (!cancelled && Array.isArray(data?.conversation)) {
 					setMessages(data.conversation);
 				}
@@ -58,7 +72,7 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 			cancelled = true;
 			clearInterval(timer);
 		};
-	}, [caseId, open]);
+	}, [caseId, open, resetCaseState, t]);
 
 	useEffect(() => {
 		if (!caseId || !open) return undefined;
@@ -96,10 +110,17 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 			if (data.caseId && String(data.caseId) !== String(caseId)) return;
 			setTypingStatus("");
 		};
+		const onCloseCase = (payload = {}) => {
+			const closedCaseId = String(payload?.case?._id || payload?.caseId || "");
+			if (closedCaseId && closedCaseId !== String(caseId)) return;
+			resetCaseState();
+			setNotice(t("chatClosed"));
+		};
 
 		socket.on("receiveMessage", onReceiveMessage);
 		socket.on("typing", onTyping);
 		socket.on("stopTyping", onStopTyping);
+		socket.on("closeCase", onCloseCase);
 
 		return () => {
 			window.clearTimeout(typingTimerRef.current);
@@ -107,16 +128,18 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 			socket.off("receiveMessage", onReceiveMessage);
 			socket.off("typing", onTyping);
 			socket.off("stopTyping", onStopTyping);
+			socket.off("closeCase", onCloseCase);
 			socket.disconnect();
 			socketRef.current = null;
 		};
-	}, [caseId, form.name, isArabic, open]);
+	}, [caseId, form.name, isArabic, open, resetCaseState, t]);
 
 	const updateForm = (key, value) => setForm((current) => ({ ...current, [key]: value }));
 
 	const startChat = async (event) => {
 		event.preventDefault();
 		setError("");
+		setNotice("");
 		if (!form.name.trim() || !form.contact.trim() || !selectedHotel || !form.message.trim()) {
 			setError(
 				isArabic
@@ -184,6 +207,8 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 		event.preventDefault();
 		if (!caseId || !reply.trim()) return;
 		setBusy(true);
+		setError("");
+		setNotice("");
 		try {
 			const conversation = {
 				messageBy: {
@@ -207,7 +232,28 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 			setReply("");
 			emitTyping("");
 		} catch (err) {
+			if (/closed/i.test(err.message || "")) {
+				resetCaseState();
+				setNotice(t("chatClosed"));
+				return;
+			}
 			setError(err.message || "Message failed.");
+		} finally {
+			setBusy(false);
+		}
+	};
+
+	const endChat = async () => {
+		if (!caseId || busy) return;
+		setBusy(true);
+		setError("");
+		try {
+			await closePublicSupportCase(caseId);
+			socketRef.current?.emit("leaveRoom", { caseId });
+			resetCaseState();
+			setNotice(t("chatClosed"));
+		} catch (err) {
+			setError(err.message || "Unable to close chat.");
 		} finally {
 			setBusy(false);
 		}
@@ -227,10 +273,18 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 							<strong>{BRAND_NAME}</strong>
 							<span>{isArabic ? "دعم الفنادق" : "Hotel support"}</span>
 						</div>
-						<button className="support-close" type="button" onClick={() => setOpen(false)} aria-label="Close support">
-							<X size={20} />
-						</button>
+						<div className="support-head-actions">
+							{caseId ? (
+								<button className="support-end-chat" type="button" onClick={endChat} disabled={busy}>
+									{t("endChat")}
+								</button>
+							) : null}
+							<button className="support-close" type="button" onClick={() => setOpen(false)} aria-label="Close support">
+								<X size={20} />
+							</button>
+						</div>
 					</header>
+					{notice ? <p className="notice">{notice}</p> : null}
 					{caseId ? (
 						<>
 							<div className="messages">
@@ -402,6 +456,30 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 					font-weight: 850;
 				}
 
+				.support-head-actions {
+					display: inline-flex;
+					align-items: center;
+					gap: 8px;
+					flex: 0 0 auto;
+				}
+
+				.support-end-chat {
+					min-height: 34px;
+					border-radius: 8px;
+					border: 1px solid rgba(255, 255, 255, 0.18);
+					padding: 0 10px;
+					color: #fff;
+					background: rgba(255, 255, 255, 0.1);
+					font-size: 12px;
+					font-weight: 950;
+					cursor: pointer;
+				}
+
+				.support-end-chat:disabled {
+					opacity: 0.58;
+					cursor: not-allowed;
+				}
+
 				.support-close {
 					width: 36px;
 					height: 36px;
@@ -569,6 +647,17 @@ export default function SupportWidget({ hotels = [], website = {} }) {
 					color: #b42318;
 					font-weight: 800;
 					font-size: 13px;
+				}
+
+				.notice {
+					margin: 0;
+					padding: 12px 16px;
+					color: #05603a;
+					background: rgba(45, 212, 191, 0.1);
+					border-bottom: 1px solid rgba(15, 143, 112, 0.14);
+					font-size: 13px;
+					font-weight: 900;
+					line-height: 1.45;
 				}
 
 				@media (max-width: 640px) {
