@@ -1033,3 +1033,29 @@ Production Deployment Result - Zad Hotel Card Interaction Pass - 2026-06-10
 - PM2/log health:
   - zad-ssr PM2 status was online.
   - zad-ssr error log had no new entries during verification.
+
+Zad Lower Navbar Metallic Visual Pass - 2026-06-10
+- Purpose:
+  - Make the lower header/navigation bar feel more premium, classic, and aligned with the Makkah-focused hotel experience.
+  - Keep the existing Zad theme colors: purple, blue, green, black, cream/white, and restrained gold highlights.
+  - Preserve the existing navigation layout and mobile drawer behavior.
+- Frontend file updated:
+  - D:\JannatBooking\zad_ssr\app\globals.css
+    - .main-strip now uses layered metallic black, purple, blue, and green gradients.
+    - Added a subtle geometric pattern overlay inspired by Islamic/Makkah visual language.
+    - Added a fine gold/green glint line under the lower navigation bar.
+    - Main navigation links now sit on a refined translucent panel.
+    - Active/hover links now use subtle gold borders, metallic purple/green fill, and stronger readability.
+    - Search/cart/mobile icon buttons were adjusted to match the new metallic surface.
+- Local verification:
+  - npm run build passed.
+  - Playwright checked:
+    - /our-hotels?lang=ar desktop at 1440px
+    - /our-hotels?lang=en desktop at 1440px
+    - /our-hotels?lang=ar tablet at 1024px
+    - /our-hotels?lang=ar mobile at 390px
+  - Results:
+    - No horizontal overflow.
+    - No browser console errors.
+    - Desktop and tablet navigation remained visible and aligned.
+    - Mobile navigation still used the drawer as expected.

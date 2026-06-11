@@ -244,13 +244,52 @@ html[dir="rtl"] .ant-input-number-input {
 
 .main-strip {
 	position: relative;
+	overflow: hidden;
 	background:
-		linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
-		#202126;
-	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+		radial-gradient(circle at 12% -35%, rgba(217, 146, 37, 0.3), transparent 34%),
+		radial-gradient(circle at 76% 0%, rgba(45, 212, 191, 0.2), transparent 32%),
+		linear-gradient(112deg, rgba(100, 22, 110, 0.84) 0%, rgba(23, 57, 95, 0.76) 42%, rgba(6, 78, 59, 0.72) 100%),
+		linear-gradient(180deg, #29252c 0%, #121620 54%, #08090d 100%);
+	border-bottom: 1px solid rgba(217, 146, 37, 0.26);
+	box-shadow:
+		inset 0 1px rgba(255, 255, 255, 0.12),
+		inset 0 -1px rgba(15, 143, 112, 0.2),
+		0 18px 42px rgba(8, 9, 13, 0.2);
+}
+
+.main-strip::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background-image:
+		linear-gradient(30deg, rgba(255, 255, 255, 0.055) 12%, transparent 12.5%, transparent 87%, rgba(255, 255, 255, 0.055) 87.5%),
+		linear-gradient(150deg, rgba(255, 255, 255, 0.045) 12%, transparent 12.5%, transparent 87%, rgba(255, 255, 255, 0.045) 87.5%),
+		linear-gradient(30deg, rgba(217, 146, 37, 0.075) 12%, transparent 12.5%, transparent 87%, rgba(217, 146, 37, 0.075) 87.5%),
+		linear-gradient(150deg, rgba(45, 212, 191, 0.05) 12%, transparent 12.5%, transparent 87%, rgba(45, 212, 191, 0.05) 87.5%);
+	background-position:
+		0 0,
+		0 0,
+		36px 21px,
+		36px 21px;
+	background-size: 72px 42px;
+	opacity: 0.48;
+}
+
+.main-strip::after {
+	content: "";
+	position: absolute;
+	inset-inline: 0;
+	bottom: 0;
+	height: 2px;
+	pointer-events: none;
+	background: linear-gradient(90deg, transparent, rgba(217, 146, 37, 0.78), rgba(45, 212, 191, 0.62), rgba(217, 146, 37, 0.78), transparent);
+	box-shadow: 0 0 18px rgba(217, 146, 37, 0.24);
 }
 
 .main-strip-inner {
+	position: relative;
+	z-index: 1;
 	height: 78px;
 	display: grid;
 	grid-template-columns: 180px 1fr auto;
@@ -268,7 +307,9 @@ html[dir="rtl"] .ant-input-number-input {
 	width: 132px;
 	height: 58px;
 	object-fit: contain;
-	filter: drop-shadow(0 5px 10px rgba(45, 212, 191, 0.32));
+	filter:
+		drop-shadow(0 6px 12px rgba(8, 9, 13, 0.38))
+		drop-shadow(0 0 13px rgba(45, 212, 191, 0.36));
 }
 
 .main-nav {
@@ -276,10 +317,20 @@ html[dir="rtl"] .ant-input-number-input {
 	align-items: center;
 	justify-content: center;
 	gap: 4px;
+	border: 1px solid rgba(217, 146, 37, 0.12);
+	border-radius: 10px;
+	padding: 4px;
+	background:
+		linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02)),
+		rgba(8, 9, 13, 0.18);
+	box-shadow:
+		inset 0 1px rgba(255, 255, 255, 0.08),
+		0 10px 24px rgba(8, 9, 13, 0.12);
 }
 
 .main-nav a {
 	min-height: 42px;
+	border: 1px solid transparent;
 	border-radius: 8px;
 	padding: 0 12px;
 	display: inline-flex;
@@ -288,17 +339,31 @@ html[dir="rtl"] .ant-input-number-input {
 	color: rgba(255, 255, 255, 0.9);
 	font-size: 14px;
 	font-weight: 950;
+	text-shadow: 0 1px 1px rgba(8, 9, 13, 0.42);
 	transition:
 		background 160ms ease,
-		color 160ms ease;
+		border-color 160ms ease,
+		color 160ms ease,
+		box-shadow 160ms ease,
+		transform 160ms ease;
+}
+
+.main-nav a svg {
+	color: rgba(217, 146, 37, 0.88);
+	filter: drop-shadow(0 0 5px rgba(217, 146, 37, 0.16));
 }
 
 .main-nav a:hover,
 .main-nav a.active {
 	color: #ffffff;
 	background:
-		linear-gradient(135deg, rgba(141, 76, 157, 0.46), rgba(45, 93, 145, 0.28)),
-		rgba(255, 255, 255, 0.08);
+		linear-gradient(135deg, rgba(217, 146, 37, 0.24), rgba(100, 22, 110, 0.56) 42%, rgba(15, 143, 112, 0.32)),
+		rgba(255, 255, 255, 0.1);
+	border-color: rgba(217, 146, 37, 0.34);
+	box-shadow:
+		inset 0 1px rgba(255, 255, 255, 0.16),
+		0 8px 18px rgba(8, 9, 13, 0.18);
+	transform: translateY(-1px);
 }
 
 html[dir="rtl"] .main-nav a {
@@ -319,11 +384,14 @@ html[dir="rtl"] .main-nav a {
 	border: 1px solid rgba(255, 255, 255, 0.14);
 	border-radius: 8px;
 	color: #ffffff;
-	background: rgba(255, 255, 255, 0.08);
+	background:
+		linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04)),
+		rgba(8, 9, 13, 0.2);
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
+	box-shadow: inset 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .icon-action .ant-badge,
