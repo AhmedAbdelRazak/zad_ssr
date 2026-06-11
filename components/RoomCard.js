@@ -61,6 +61,7 @@ export default function RoomCard({
 			roomColor: room.roomColor || "",
 			defaultCost: room.defaultCost,
 			roomCommission: room.roomCommission,
+			pricingRate: Array.isArray(room.pricingRate) ? room.pricingRate : [],
 			bedsCount: room.bedsCount,
 			adults: Number(adults || 1),
 			children: Number(children || 0),

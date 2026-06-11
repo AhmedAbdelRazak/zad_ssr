@@ -1034,6 +1034,43 @@ Production Deployment Result - Zad Hotel Card Interaction Pass - 2026-06-10
   - zad-ssr PM2 status was online.
   - zad-ssr error log had no new entries during verification.
 
+Zad Cart Drawer Date Editing Pass - 2026-06-10
+- Purpose:
+  - Let guests adjust check-in and check-out dates directly from the cart side drawer.
+  - Keep the date controls clear on desktop and mobile, especially in Arabic.
+  - Recalculate cart pricing rows and totals when dates change.
+- Frontend files updated:
+  - D:\JannatBooking\zad_ssr\components\CartDrawer.js
+    - Adds a polished stay-date editor to each cart item.
+    - Uses two explicit date pickers: Check-in and Check-out.
+    - Prevents checkout from being the same as or before check-in.
+    - Keeps date values displayed LTR even inside Arabic/RTL UI.
+    - Uses the same itemTotal pricing logic as checkout for line totals.
+  - D:\JannatBooking\zad_ssr\components\ZadAppProvider.js
+    - Normalizes cart dates safely.
+    - Recalculates nightly pricing rows when a cart item's dates change.
+    - Scopes cart item updates/removals to the exact room/date row.
+    - Merges duplicate room/date rows safely if an edit creates a match.
+  - D:\JannatBooking\zad_ssr\components\RoomCard.js
+    - Stores room pricingRate in cart items when available, so later date edits can reuse calendar pricing.
+  - D:\JannatBooking\zad_ssr\app\globals.css
+    - Styles the cart date editor, date fields, date summary dot, and nights pill.
+- Local verification:
+  - npm run build passed.
+  - Playwright checked:
+    - /rooms with English desktop cart drawer at 1366px.
+    - /rooms with Arabic mobile cart drawer at 390px.
+  - Results:
+    - Added a room to cart through the real UI.
+    - Changed dates from 2026-06-11 - 2026-06-14 to 2026-06-16 - 2026-06-20.
+    - Cart date summary updated correctly.
+    - Date picker values updated correctly.
+    - Nights updated to 4 nights.
+    - Subtotal changed from SAR 210 to SAR 320.
+    - Arabic mobile showed separate check-in/check-out fields with LTR date numbers.
+    - No horizontal overflow.
+    - No browser console errors.
+
 Zad Lower Navbar Metallic Visual Pass - 2026-06-10
 - Purpose:
   - Make the lower header/navigation bar feel more premium, classic, and aligned with the Makkah-focused hotel experience.

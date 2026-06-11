@@ -3,7 +3,8 @@
 import { ConfigProvider } from "antd";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import { cartRoomsCount, cartTotal, defaultGuestPaymentAcceptance, safeNumber } from "../lib/booking";
+import dayjs from "dayjs";
+import { buildRoomPricing, cartRoomsCount, cartTotal, defaultGuestPaymentAcceptance, generateDateRange, safeNumber } from "../lib/booking";
 import { LANGUAGES, getText } from "../lib/i18n";
 import { addLanguageToHref, languageFromSearch, normalizeLanguage } from "../lib/language";
 
@@ -18,15 +19,76 @@ const dateOffset = (days) => {
 	return date.toISOString().slice(0, 10);
 };
 
+const normalizeCartDate = (value, fallback) => {
+	const date = dayjs(value);
+	return date.isValid() ? date.format("YYYY-MM-DD") : fallback;
+};
+
+const pricingRowsMatchDates = (rows = [], dates = []) =>
+	Array.isArray(rows) &&
+	rows.length === dates.length &&
+	rows.every((row, index) => String(row?.date || row?.calendarDate || "").slice(0, 10) === dates[index]);
+
+const cartItemMatches = (item = {}, id, match = {}) => {
+	if (item.id !== id) return false;
+	if (match.checkIn && item.checkIn !== match.checkIn) return false;
+	if (match.checkOut && item.checkOut !== match.checkOut) return false;
+	return true;
+};
+
+const mergeCartItems = (items = []) => {
+	const merged = [];
+	items.map(normalizeItem).forEach((item) => {
+		const index = merged.findIndex(
+			(row) => row.id === item.id && row.checkIn === item.checkIn && row.checkOut === item.checkOut
+		);
+		if (index === -1) {
+			merged.push(item);
+			return;
+		}
+		merged[index] = {
+			...merged[index],
+			amount: Math.min(20, Number(merged[index].amount || 1) + Number(item.amount || 1)),
+		};
+	});
+	return merged;
+};
+
 const normalizeItem = (item = {}) => {
-	const checkIn = item.checkIn || dateOffset(1);
-	const checkOut = item.checkOut || dateOffset(4);
+	const checkIn = normalizeCartDate(item.checkIn, dateOffset(1));
+	const rawCheckOut = normalizeCartDate(item.checkOut, dateOffset(4));
+	const checkOut = dayjs(rawCheckOut).isAfter(dayjs(checkIn))
+		? rawCheckOut
+		: dayjs(checkIn).add(1, "day").format("YYYY-MM-DD");
 	const amount = Math.max(1, Number(item.amount || 1));
 	const price = Math.max(0, Number(item.price || 0));
-	const pricingByDay = Array.isArray(item.pricingByDay) ? item.pricingByDay : [];
-	const pricingByDayWithCommission = Array.isArray(item.pricingByDayWithCommission)
+	const defaultCost = safeNumber(item.defaultCost, price);
+	const roomCommission = safeNumber(item.roomCommission, 10);
+	const pricingRate = Array.isArray(item.pricingRate) ? item.pricingRate : [];
+	const storedPricingByDay = Array.isArray(item.pricingByDay) ? item.pricingByDay : [];
+	const storedPricingByDayWithCommission = Array.isArray(item.pricingByDayWithCommission)
 		? item.pricingByDayWithCommission
-		: pricingByDay;
+		: storedPricingByDay;
+	const dateRange = generateDateRange(checkIn, checkOut);
+	const shouldReusePricing =
+		pricingRowsMatchDates(storedPricingByDayWithCommission, dateRange) &&
+		pricingRowsMatchDates(storedPricingByDay.length ? storedPricingByDay : storedPricingByDayWithCommission, dateRange);
+	const recalculatedPricing = shouldReusePricing
+		? {
+				pricingByDay: storedPricingByDay.length ? storedPricingByDay : storedPricingByDayWithCommission,
+				pricingByDayWithCommission: storedPricingByDayWithCommission,
+			}
+		: buildRoomPricing(
+				{
+					...item,
+					price: { basePrice: price },
+					defaultCost,
+					roomCommission,
+					pricingRate,
+				},
+				checkIn,
+				checkOut
+			);
 	return {
 		id: String(item.id || `${item.hotelId || "hotel"}-${item.roomType || "room"}`),
 		hotelId: item.hotelId || "",
@@ -43,8 +105,8 @@ const normalizeItem = (item = {}) => {
 		roomName: item.roomName || "Room",
 		roomNameOtherLanguage: item.roomNameOtherLanguage || "",
 		roomColor: item.roomColor || "",
-		defaultCost: safeNumber(item.defaultCost, price),
-		roomCommission: safeNumber(item.roomCommission, 10),
+		defaultCost,
+		roomCommission,
 		bedsCount: safeNumber(item.bedsCount, 0),
 		adults: Math.max(1, safeNumber(item.adults, 1)),
 		children: Math.max(0, safeNumber(item.children, 0)),
@@ -54,8 +116,9 @@ const normalizeItem = (item = {}) => {
 		amount,
 		checkIn,
 		checkOut,
-		pricingByDay,
-		pricingByDayWithCommission,
+		pricingRate,
+		pricingByDay: recalculatedPricing.pricingByDay,
+		pricingByDayWithCommission: recalculatedPricing.pricingByDayWithCommission,
 	};
 };
 
@@ -174,14 +237,18 @@ export function ZadAppProvider({ children, initialLanguage = "en" }) {
 		setCartOpen(true);
 	}, []);
 
-	const updateCartItem = useCallback((id, patch = {}) => {
+	const updateCartItem = useCallback((id, patch = {}, match = {}) => {
 		setCart((current) =>
-			current.map((item) => (item.id === id ? normalizeItem({ ...item, ...patch }) : item))
+			mergeCartItems(
+				current.map((item) =>
+					cartItemMatches(item, id, match) ? normalizeItem({ ...item, ...patch }) : item
+				)
+			)
 		);
 	}, []);
 
-	const removeCartItem = useCallback((id) => {
-		setCart((current) => current.filter((item) => item.id !== id));
+	const removeCartItem = useCallback((id, match = {}) => {
+		setCart((current) => current.filter((item) => !cartItemMatches(item, id, match)));
 	}, []);
 
 	const clearCart = useCallback(() => setCart([]), []);
