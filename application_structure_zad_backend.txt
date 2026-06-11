@@ -511,3 +511,16 @@ Zad Asset Delivery And Image Protection Notes - 2026-06-10
 - Backend impact:
   - hotels_backend code was not changed for this pass.
   - Existing hotel image URLs and Cloudinary fallback fields remain untouched.
+
+Production Result - Zad Asset Delivery And Image Protection - 2026-06-10
+- Runtime change deployed through zad_ssr, not hotels_backend.
+- Production server:
+  - /home/ahmedadmin/Hotels/zad_ssr is on commit 60d6c75.
+  - npm ci and npm run build passed on ssh jannat.
+  - pm2 restarted zad-ssr and saved the process list.
+- Live checks:
+  - Zad public pages returned 200.
+  - Zad /assets route returned 200 with long-cache and noimageindex headers.
+  - Zad /_next/image optimized route returned 200 for a hotel image.
+  - Cross-site image hotlink simulation returned 403.
+- No hotels_backend deployment was required for this item.

@@ -791,3 +791,30 @@ PageSpeed Image Delivery And Asset Protection Pass - 2026-06-10
     - no raw jannatbooking.com/assets image src values
     - max optimizer candidate width was 1920
     - console errors were clean
+
+Production Deployment Result - PageSpeed/Image Protection Pass - 2026-06-10
+- GitHub push completed:
+  - zad_ssr main commit:
+    60d6c75 - Improve Zad image performance and protection
+- Production server pull/build completed on ssh jannat:
+  - /home/ahmedadmin/Hotels/zad_ssr fast-forwarded from cc752d4 to 60d6c75.
+  - npm ci completed with 0 vulnerabilities.
+  - npm run build passed.
+  - pm2 restarted zad-ssr and saved the process list.
+- Production app health:
+  - zad-ssr PM2 status was online after restart.
+  - PM2 error log had no new error output; startup log showed Next.js ready.
+- Live public HTTP verification:
+  - https://zadhotels.jannatbooking.com/our-hotels?lang=ar returned 200.
+  - https://zadhotels.jannatbooking.com/rooms?lang=ar&destination=All&startDate=2026-06-11&endDate=2026-06-14&roomType=doubleRooms&adults=1&children=0 returned 200.
+  - https://zadhotels.jannatbooking.com/contact?lang=en returned 200.
+  - https://zadhotels.jannatbooking.com/assets/janat/1756890718924.jpg returned 200 with long-cache, noimageindex, and same-origin resource policy headers.
+  - https://zadhotels.jannatbooking.com/_next/image?url=%2Fassets%2Fjanat%2F1756890718924.jpg&w=750&q=78 returned 200.
+  - The same optimized image endpoint with an outside Referer returned 403.
+- Live browser verification:
+  - Playwright checked live /?lang=ar desktop, /our-hotels?lang=ar mobile, and /rooms?lang=ar mobile.
+  - No visible broken images were found.
+  - No horizontal overflow was found.
+  - No raw jannatbooking.com/assets image src values were found in rendered images.
+  - Max optimized image width was 1920.
+  - Console errors were clean.
