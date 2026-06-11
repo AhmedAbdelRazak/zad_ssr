@@ -918,3 +918,46 @@ Zad Client Auth, Mobile Cards, And Chat Close Notes - 2026-06-10
     - mobile drawer shows Sign in / Sign up
     - mobile hotel-card amenities render as two columns
     - signup submit button is visible in the first desktop viewport at 1366x820
+
+Production Deployment Result - Zad Client Auth And Chat Close - 2026-06-10
+- GitHub push completed:
+  - zad_ssr main commit:
+    4329cd7 - Add Zad client auth pages
+  - hotels_backend master commit:
+    be92953 - Add Zad client auth endpoints
+- Production server pull/build completed on ssh jannat:
+  - /home/ahmedadmin/Hotels/hotels_backend fast-forwarded to be92953.
+  - node --check passed for controllers/zadcontroller.js and routes/zad.js on the server.
+  - hotels-backend restarted through PM2 and is online.
+  - /home/ahmedadmin/Hotels/zad_ssr fast-forwarded to 4329cd7.
+  - npm ci completed with 0 vulnerabilities.
+  - npm run build passed.
+  - zad-ssr restarted through PM2 and is online.
+- Production environment note:
+  - /home/ahmedadmin/Hotels/zad_ssr did not have a .env file at deployment time.
+  - Because NEXT_PUBLIC_GOOGLE_CLIENT_ID is not configured there yet, the Google auth button displays the polished setup message.
+  - Once NEXT_PUBLIC_GOOGLE_CLIENT_ID is added before a future build, the same UI will initialize Google Identity Services.
+- Live HTTP verification:
+  - https://zadhotels.jannatbooking.com/signin?lang=en returned 200.
+  - https://zadhotels.jannatbooking.com/signup?lang=ar returned 200.
+  - POST https://xhotelpro.com/api/zad/auth/signin with an empty body returned 400 validation, confirming the route exists.
+  - POST https://xhotelpro.com/api/zad/auth/signup with an empty body returned 400 validation, confirming the route exists.
+- Live browser verification:
+  - Playwright checked:
+    - /?lang=en desktop
+    - /signin?lang=en desktop
+    - /signup?lang=ar desktop
+    - /our-hotels?lang=ar mobile
+    - /signin?lang=ar mobile
+  - Results:
+    - no horizontal overflow
+    - no console errors
+    - desktop auth links count: 2
+    - Arabic signup rendered RTL with 5 fields and visible submit button
+    - mobile drawer showed Sign in / Sign up
+    - mobile hotel-card amenities rendered in two equal columns
+- PM2/log health:
+  - zad-ssr PM2 status was online.
+  - hotels-backend PM2 status was online.
+  - zad-ssr error log showed no new errors.
+  - hotels-backend error log only showed old unrelated public-search/currency fallback messages, not errors from the new Zad auth routes.
